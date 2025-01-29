@@ -4,12 +4,14 @@ Before you can use `HttpClient` in your app, you must configure it using [depend
 
 ## Providing `HttpClient` through dependency injection
 
-`HttpClient` is provided using the `provideHttpClient` helper function, which most apps include in the application `providers` in `main.ts`.
+`HttpClient` is provided using the `provideHttpClient` helper function, which most apps include in the application `providers` in `app.config.ts`.
 
 <docs-code language="ts">
-boostrapApplication(App, {providers: [
-  provideHttpClient(),
-]});
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+  ]
+};
 </docs-code>
 
 If your app is using NgModule-based bootstrap instead, you can include `provideHttpClient` in the providers of your app's NgModule:
@@ -42,14 +44,16 @@ export class ConfigService {
 ### `withFetch`
 
 <docs-code language="ts">
-boostrapApplication(App, {providers: [
-  provideHttpClient(
-    withFetch(),
-  ),
-]});
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(
+      withFetch(),
+    ),
+  ]
+};
 </docs-code>
 
-By default, `HttpClient` uses the [`XMLHttpRequest`](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) API to make requests. The `withFetch` feature switches the client to use the [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) API instead.
+By default, `HttpClient` uses the [`XMLHttpRequest`](https://developer.mozilla.org/docs/Web/API/XMLHttpRequest) API to make requests. The `withFetch` feature switches the client to use the [`fetch`](https://developer.mozilla.org/docs/Web/API/Fetch_API) API instead.
 
 `fetch` is a more modern API and is available in a few environments where `XMLHttpRequest` is not supported. It does have a few limitations, such as not producing upload progress events.
 
@@ -75,28 +79,28 @@ CRITICAL: You must configure an instance of `HttpClient` above the current injec
 
 Including `withJsonpSupport` enables the `.jsonp()` method on `HttpClient`, which makes a GET request via the [JSONP convention](https://en.wikipedia.org/wiki/JSONP) for cross-domain loading of data.
 
-HELPFUL: Prefer using [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) to make cross-domain requests instead of JSONP when possible.
+HELPFUL: Prefer using [CORS](https://developer.mozilla.org/docs/Web/HTTP/CORS) to make cross-domain requests instead of JSONP when possible.
 
 ### `withXsrfConfiguration(...)`
 
-Including this option allows for customization of `HttpClient`'s built-in XSRF security functionality. See the [security guide](guide/http/security) for more information.
+Including this option allows for customization of `HttpClient`'s built-in XSRF security functionality. See the [security guide](best-practices/security) for more information.
 
 ### `withNoXsrfProtection()`
 
-Including this option disables `HttpClient`'s built-in XSRF security functionality. See the [security guide](guide/http/security) for more information.
+Including this option disables `HttpClient`'s built-in XSRF security functionality. See the [security guide](best-practices/security) for more information.
 
 ## `HttpClientModule`-based configuration
 
-Some applications may configure `HttpClient` using the older API based on NgModules. This table lists the various NgModules from `@angular/common/http` and their provider-based equivalents.
+Some applications may configure `HttpClient` using the older API based on NgModules.
 
 This table lists the NgModules available from `@angular/common/http` and how they relate to the provider configuration functions above.
 
-| **NgModule** | `provideHttpClient()` equivalent |
-| - | - |
-| `HttpClientModule` | `provideHttpClient(withInterceptorsFromDi())` |
-| `HttpClientJsonpModule` |  `withJsonpSupport()` |
-| `HttpClientXsrfModule.withOptions(...)` | `withXsrfConfiguration(...)` |
-| `HttpClientXsrfModule.disable()` | `withNoXsrfProtection()` |
+| **NgModule**                            | `provideHttpClient()` equivalent              |
+| --------------------------------------- | --------------------------------------------- |
+| `HttpClientModule`                      | `provideHttpClient(withInterceptorsFromDi())` |
+| `HttpClientJsonpModule`                 | `withJsonpSupport()`                          |
+| `HttpClientXsrfModule.withOptions(...)` | `withXsrfConfiguration(...)`                  |
+| `HttpClientXsrfModule.disable()`        | `withNoXsrfProtection()`                      |
 
 <docs-callout important title="Use caution when using HttpClientModule in multiple injectors">
 When `HttpClientModule` is present in multiple injectors, the behavior of interceptors is poorly defined and depends on the exact options and provider/import ordering.

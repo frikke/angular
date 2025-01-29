@@ -1,8 +1,7 @@
-import { Component } from '@angular/core';
-import { JsonPipe } from '@angular/common';
+import {Component} from '@angular/core';
+import {JsonPipe} from '@angular/common';
 
 @Component({
-  standalone: true,
   selector: 'app-json-pipe',
   template: `{{ data | json }}`,
   imports: [JsonPipe],
@@ -14,6 +13,6 @@ export class JsonPipeComponent {
     address: {
       street: '123 Main St',
       city: 'Anytown',
-    }
+    },
   };
 }

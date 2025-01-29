@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {HttpHeaders} from '@angular/common/http/src/headers';
@@ -46,24 +46,34 @@ describe('HttpHeaders', () => {
       expect(headers.getAll('foo')).toEqual(['second']);
     });
 
+    it('should keep all values when initialized from a Headers object with duplicate headers', () => {
+      const standardHeaders = new Headers([
+        ['Set-Cookie', 'cookie1=foo'],
+        ['Set-Cookie', 'cookie2=bar'],
+      ]);
+      const headers = new HttpHeaders(standardHeaders);
+
+      expect(headers.getAll('Set-Cookie')).toEqual(['cookie1=foo', 'cookie2=bar']);
+    });
+
     it('should throw an error when null is passed as header', () => {
       // Note: the `strictNullChecks` set to `false` in TS config would make `null`
       // valid value within the headers object, thus this test verifies this scenario.
       const headers = new HttpHeaders({foo: null!});
-      expect(() => headers.get('foo'))
-          .toThrowError(
-              'Unexpected value of the `foo` header provided. ' +
-              'Expecting either a string, a number or an array, but got: `null`.');
+      expect(() => headers.get('foo')).toThrowError(
+        'Unexpected value of the `foo` header provided. ' +
+          'Expecting either a string, a number or an array, but got: `null`.',
+      );
     });
 
     it('should throw an error when undefined is passed as header', () => {
       // Note: the `strictNullChecks` set to `false` in TS config would make `undefined`
       // valid value within the headers object, thus this test verifies this scenario.
       const headers = new HttpHeaders({bar: undefined!});
-      expect(() => headers.get('bar'))
-          .toThrowError(
-              'Unexpected value of the `bar` header provided. ' +
-              'Expecting either a string, a number or an array, but got: `undefined`.');
+      expect(() => headers.get('bar')).toThrowError(
+        'Unexpected value of the `bar` header provided. ' +
+          'Expecting either a string, a number or an array, but got: `undefined`.',
+      );
     });
 
     it('should not throw an error when a number is passed as header', () => {
@@ -165,10 +175,11 @@ describe('HttpHeaders', () => {
 
   describe('response header strings', () => {
     it('should be parsed by the constructor', () => {
-      const response = `Date: Fri, 20 Nov 2015 01:45:26 GMT\n` +
-          `Content-Type: application/json; charset=utf-8\n` +
-          `Transfer-Encoding: chunked\n` +
-          `Connection: keep-alive`;
+      const response =
+        `Date: Fri, 20 Nov 2015 01:45:26 GMT\n` +
+        `Content-Type: application/json; charset=utf-8\n` +
+        `Transfer-Encoding: chunked\n` +
+        `Connection: keep-alive`;
       const headers = new HttpHeaders(response);
       expect(headers.get('Date')).toEqual('Fri, 20 Nov 2015 01:45:26 GMT');
       expect(headers.get('Content-Type')).toEqual('application/json; charset=utf-8');

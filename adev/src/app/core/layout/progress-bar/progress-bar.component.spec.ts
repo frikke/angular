@@ -8,7 +8,8 @@
 
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {ProgressBarComponent} from './progress-bar.component';
+import {PROGRESS_BAR_DELAY, ProgressBarComponent} from './progress-bar.component';
+import {RouterTestingHarness, RouterTestingModule} from '@angular/router/testing';
 
 describe('ProgressBarComponent', () => {
   let component: ProgressBarComponent;
@@ -16,7 +17,7 @@ describe('ProgressBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProgressBarComponent],
+      imports: [ProgressBarComponent, RouterTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProgressBarComponent);
@@ -24,7 +25,14 @@ describe('ProgressBarComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should call progressBar.complete() on route change', async () => {
+    const progressBar = component.progressBar();
+    const progressBarCompleteSpy = spyOn(progressBar, 'complete');
+
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/');
+
+    await new Promise((resolve) => setTimeout(resolve, PROGRESS_BAR_DELAY));
+    expect(progressBarCompleteSpy).toHaveBeenCalled();
   });
 });

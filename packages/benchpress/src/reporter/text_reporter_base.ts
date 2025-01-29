@@ -3,9 +3,8 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
-
 
 import {InjectionToken} from '@angular/core';
 
@@ -20,7 +19,10 @@ export const defaultColumnWidth = 18;
 export class TextReporterBase {
   private _metricNames: string[];
 
-  constructor(private _columnWidth: number, private _sampleDescription: SampleDescription) {
+  constructor(
+    private _columnWidth: number,
+    private _sampleDescription: SampleDescription,
+  ) {
     this._metricNames = sortedProps(_sampleDescription.metrics);
   }
 
@@ -37,7 +39,10 @@ export class TextReporterBase {
     });
     text += '\n';
     text += `${this.metricsHeader()}\n`;
-    text += `${this._stringRow(this._metricNames.map((_) => ''), '-')}\n`;
+    text += `${this._stringRow(
+      this._metricNames.map((_) => ''),
+      '-',
+    )}\n`;
     return text;
   }
 
@@ -46,7 +51,7 @@ export class TextReporterBase {
   }
 
   sampleMetrics(measureValues: MeasureValues): string {
-    const formattedValues = this._metricNames.map(metricName => {
+    const formattedValues = this._metricNames.map((metricName) => {
       const value = measureValues.values[metricName];
       return formatNum(value);
     });
@@ -54,15 +59,19 @@ export class TextReporterBase {
   }
 
   separator(): string {
-    return this._stringRow(this._metricNames.map((_) => ''), '=');
+    return this._stringRow(
+      this._metricNames.map((_) => ''),
+      '=',
+    );
   }
 
   sampleStats(validSamples: MeasureValues[]): string {
     return this._stringRow(
-        this._metricNames.map(metricName => formatStats(validSamples, metricName)));
+      this._metricNames.map((metricName) => formatStats(validSamples, metricName)),
+    );
   }
 
   private _stringRow(parts: string[], fill = ' ') {
-    return parts.map(part => part.padStart(this._columnWidth, fill)).join(' | ');
+    return parts.map((part) => part.padStart(this._columnWidth, fill)).join(' | ');
   }
 }

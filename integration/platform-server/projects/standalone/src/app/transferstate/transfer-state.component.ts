@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {isPlatformServer} from '@angular/common';
@@ -16,12 +16,15 @@ const COUNTER_KEY = makeStateKey<number>('counter');
   selector: 'transfer-state',
   standalone: true,
   template: ` <div>{{ counter }}</div> `,
-  providers: [HttpClient]
+  providers: [HttpClient],
 })
 export class TransferStateComponent {
   counter = 0;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: {}, private transferState: TransferState) {}
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: {},
+    private transferState: TransferState,
+  ) {}
 
   ngOnInit() {
     if (isPlatformServer(this.platformId)) {

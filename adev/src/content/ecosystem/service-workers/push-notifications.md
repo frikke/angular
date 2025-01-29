@@ -14,7 +14,7 @@ Invoke push notifications by pushing a message with a valid payload.
 See `SwPush` for guidance.
 
 HELPFUL: In Chrome, you can test push notifications without a backend.
-Open Devtools -&gt; Application -&gt; Service Workers and use the `Push` input to send a JSON notification payload.
+Open Devtools -> Application -> Service Workers and use the `Push` input to send a JSON notification payload.
 
 ## Notification click handling
 
@@ -69,7 +69,7 @@ In addition, using the `onActionClick` property on the `data` object, you can ti
       {"action": "foo", "title": "Open new tab"},
       {"action": "bar", "title": "Focus last"},
       {"action": "baz", "title": "Navigate last"},
-      {"action": "qux", "title": "Send request in the background"}
+      {"action": "qux", "title": "Send request in the background"},
       {"action": "other", "title": "Just notify existing clients"}
     ],
     "data": {

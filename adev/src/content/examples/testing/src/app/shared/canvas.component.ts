@@ -6,10 +6,9 @@
 import 'zone.js/plugins/zone-patch-canvas';
 // #enddocregion import-canvas-patch
 // #docregion main
-import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import {Component, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'sample-canvas',
   template: '<canvas #sampleCanvas width="200" height="200"></canvas>',
 })

@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
-import { HEROES } from './mock-heroes';
-import { HeroListGroupsComponent } from './hero-list-groups.component';
+import {Component} from '@angular/core';
+import {HEROES} from './mock-heroes';
+import {HeroListGroupsComponent} from './hero-list-groups.component';
 
 @Component({
-  standalone: true,
   selector: 'app-hero-list-groups-page',
   template: `
     <section>
@@ -12,12 +11,12 @@ import { HeroListGroupsComponent } from './hero-list-groups.component';
       <app-hero-list-groups [heroes]="heroes" (remove)="onRemove($event)"></app-hero-list-groups>
     </section>
   `,
-  imports: [HeroListGroupsComponent]
+  imports: [HeroListGroupsComponent],
 })
 export class HeroListGroupPageComponent {
   heroes = HEROES.slice();
 
   onRemove(id: number) {
-    this.heroes = this.heroes.filter(hero => hero.id !== id);
+    this.heroes = this.heroes.filter((hero) => hero.id !== id);
   }
 }

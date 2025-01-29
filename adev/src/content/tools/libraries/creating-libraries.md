@@ -38,10 +38,10 @@ See [Setting up for a multi-project workspace](reference/configs/file-structure#
 
 When you generate a new library, the workspace configuration file, `angular.json`, is updated with a project of type `library`.
 
-<docs-code>
+<docs-code language="json">
 
 "projects": {
-  &hellip;
+  …
   "my-lib": {
     "root": "projects/my-lib",
     "sourceRoot": "projects/my-lib/src",
@@ -49,8 +49,8 @@ When you generate a new library, the workspace configuration file, `angular.json
     "prefix": "lib",
     "architect": {
       "build": {
-        "builder": "&commat;angular-devkit/build-angular:ng-packagr",
-        &hellip;
+        "builder": "@angular-devkit/build-angular:ng-packagr",
+        …
 
 </docs-code>
 
@@ -134,7 +134,7 @@ For more information, see [Schematics Overview](tools/cli/schematics) and [Schem
 Use the Angular CLI and the npm package manager to build and publish your library as an npm package.
 
 Angular CLI uses a tool called [ng-packagr](https://github.com/ng-packagr/ng-packagr/blob/master/README.md) to create packages from your compiled code that can be published to npm.
-See [Building libraries with Ivy](tools/libraries/creating-libraries#ivy-libraries) for information on the distribution formats supported by `ng-packagr` and guidance on how
+See [Building libraries with Ivy](tools/libraries/creating-libraries#publishing-libraries) for information on the distribution formats supported by `ng-packagr` and guidance on how
 to choose the right format for your library.
 
 You should always build libraries for distribution using the `production` configuration.
@@ -285,8 +285,8 @@ The plugin is to be imported from `@angular/compiler-cli/linker/babel`.
 
 The Angular linker Babel plugin supports build caching, meaning that libraries only need to be processed by the linker a single time, regardless of other npm operations.
 
-Example of integrating the plugin into a custom [Webpack](https://webpack.js.org) build by registering the linker as a [Babel](https://babeljs.io) plugin using [babel-loader](https://webpack.js.org/loaders/babel-loader/#options).
+Example of integrating the plugin into a custom [webpack](https://webpack.js.org) build by registering the linker as a [Babel](https://babeljs.io) plugin using [babel-loader](https://webpack.js.org/loaders/babel-loader/#options).
 
-<docs-code header="webpack.config.mjs" path="angular-linker-plugin/webpack.config.mjs" visibleRegion="webpack-config"/>
+<docs-code header="webpack.config.mjs" path="adev/src/content/examples/angular-linker-plugin/webpack.config.mjs" visibleRegion="webpack-config"/>
 
 HELPFUL: The Angular CLI integrates the linker plugin automatically, so if consumers of your library are using the CLI, they can install Ivy-native libraries from npm without any additional configuration.

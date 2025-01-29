@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Inject, Injectable, InjectionToken} from '@angular/core';
@@ -22,22 +22,23 @@ export class ConsoleReporter extends Reporter {
   static PRINT = new InjectionToken('ConsoleReporter.print');
   static PROVIDERS = [
     {provide: ConsoleReporter, deps: [COLUMN_WIDTH, SampleDescription, ConsoleReporter.PRINT]},
-    {provide: COLUMN_WIDTH, useValue: defaultColumnWidth}, {
+    {provide: COLUMN_WIDTH, useValue: defaultColumnWidth},
+    {
       provide: ConsoleReporter.PRINT,
-      useValue:
-          function(v: any) {
-            // tslint:disable-next-line:no-console
-            console.log(v);
-          }
-    }
+      useValue: function (v: any) {
+        // tslint:disable-next-line:no-console
+        console.log(v);
+      },
+    },
   ];
 
   private textReporter = new TextReporterBase(this._columnWidth, this._sampleDescription);
 
   constructor(
-      @Inject(COLUMN_WIDTH) private _columnWidth: number,
-      private _sampleDescription: SampleDescription,
-      @Inject(ConsoleReporter.PRINT) private _print: Function) {
+    @Inject(COLUMN_WIDTH) private _columnWidth: number,
+    private _sampleDescription: SampleDescription,
+    @Inject(ConsoleReporter.PRINT) private _print: Function,
+  ) {
     super();
     this._print(this.textReporter.description());
   }
@@ -47,8 +48,10 @@ export class ConsoleReporter extends Reporter {
     return Promise.resolve(null);
   }
 
-  override reportSample(_completeSample: MeasureValues[], validSamples: MeasureValues[]):
-      Promise<any> {
+  override reportSample(
+    _completeSample: MeasureValues[],
+    validSamples: MeasureValues[],
+  ): Promise<any> {
     this._print(this.textReporter.separator());
     this._print(this.textReporter.sampleStats(validSamples));
     return Promise.resolve(null);

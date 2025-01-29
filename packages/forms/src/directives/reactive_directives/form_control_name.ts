@@ -3,10 +3,26 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Directive, EventEmitter, forwardRef, Host, Inject, Input, OnChanges, OnDestroy, Optional, Output, Provider, Self, SimpleChanges, SkipSelf, ɵWritable as Writable} from '@angular/core';
+import {
+  Directive,
+  EventEmitter,
+  forwardRef,
+  Host,
+  Inject,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Optional,
+  Output,
+  Provider,
+  Self,
+  SimpleChanges,
+  SkipSelf,
+  ɵWritable as Writable,
+} from '@angular/core';
 
 import {FormControl} from '../../model/form_control';
 import {NG_ASYNC_VALIDATORS, NG_VALIDATORS} from '../../validators';
@@ -14,7 +30,11 @@ import {AbstractFormGroupDirective} from '../abstract_form_group_directive';
 import {ControlContainer} from '../control_container';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '../control_value_accessor';
 import {NgControl} from '../ng_control';
-import {controlParentException, disabledAttrWarning, ngModelGroupException} from '../reactive_errors';
+import {
+  controlParentException,
+  disabledAttrWarning,
+  ngModelGroupException,
+} from '../reactive_errors';
 import {_ngModelWarning, controlPath, isPropertyUpdated, selectValueAccessor} from '../shared';
 import {AsyncValidator, AsyncValidatorFn, Validator, ValidatorFn} from '../validators';
 
@@ -24,7 +44,7 @@ import {FormArrayName, FormGroupName} from './form_group_name';
 
 const controlNameBinding: Provider = {
   provide: NgControl,
-  useExisting: forwardRef(() => FormControlName)
+  useExisting: forwardRef(() => FormControlName),
 };
 
 /**
@@ -32,7 +52,7 @@ const controlNameBinding: Provider = {
  * Syncs a `FormControl` in an existing `FormGroup` to a form control
  * element by name.
  *
- * @see [Reactive Forms Guide](guide/reactive-forms)
+ * @see [Reactive Forms Guide](guide/forms/reactive-forms)
  * @see {@link FormControl}
  * @see {@link AbstractControl}
  *
@@ -56,12 +76,14 @@ const controlNameBinding: Provider = {
  * form directives has been deprecated in Angular v6 and is scheduled for removal in
  * a future version of Angular.
  *
- * For details, see [Deprecated features](guide/deprecations#ngmodel-with-reactive-forms).
- *
  * @ngModule ReactiveFormsModule
  * @publicApi
  */
-@Directive({selector: '[formControlName]', providers: [controlNameBinding]})
+@Directive({
+  selector: '[formControlName]',
+  providers: [controlNameBinding],
+  standalone: false,
+})
 export class FormControlName extends NgControl implements OnChanges, OnDestroy {
   private _added = false;
   /**
@@ -86,7 +108,7 @@ export class FormControlName extends NgControl implements OnChanges, OnDestroy {
    * while the numerical form allows for form controls to be bound
    * to indices when iterating over controls in a `FormArray`.
    */
-  @Input('formControlName') override name: string|number|null = null;
+  @Input('formControlName') override name: string | number | null = null;
 
   /**
    * @description
@@ -126,13 +148,17 @@ export class FormControlName extends NgControl implements OnChanges, OnDestroy {
   _ngModelWarningSent = false;
 
   constructor(
-      @Optional() @Host() @SkipSelf() parent: ControlContainer,
-      @Optional() @Self() @Inject(NG_VALIDATORS) validators: (Validator|ValidatorFn)[],
-      @Optional() @Self() @Inject(NG_ASYNC_VALIDATORS) asyncValidators:
-          (AsyncValidator|AsyncValidatorFn)[],
-      @Optional() @Self() @Inject(NG_VALUE_ACCESSOR) valueAccessors: ControlValueAccessor[],
-      @Optional() @Inject(NG_MODEL_WITH_FORM_CONTROL_WARNING) private _ngModelWarningConfig: string|
-      null) {
+    @Optional() @Host() @SkipSelf() parent: ControlContainer,
+    @Optional() @Self() @Inject(NG_VALIDATORS) validators: (Validator | ValidatorFn)[],
+    @Optional()
+    @Self()
+    @Inject(NG_ASYNC_VALIDATORS)
+    asyncValidators: (AsyncValidator | AsyncValidatorFn)[],
+    @Optional() @Self() @Inject(NG_VALUE_ACCESSOR) valueAccessors: ControlValueAccessor[],
+    @Optional()
+    @Inject(NG_MODEL_WITH_FORM_CONTROL_WARNING)
+    private _ngModelWarningConfig: string | null,
+  ) {
     super();
     this._parent = parent;
     this._setValidators(validators);
@@ -189,20 +215,25 @@ export class FormControlName extends NgControl implements OnChanges, OnDestroy {
 
   private _checkParentType(): void {
     if (typeof ngDevMode === 'undefined' || ngDevMode) {
-      if (!(this._parent instanceof FormGroupName) &&
-          this._parent instanceof AbstractFormGroupDirective) {
+      if (
+        !(this._parent instanceof FormGroupName) &&
+        this._parent instanceof AbstractFormGroupDirective
+      ) {
         throw ngModelGroupException();
       } else if (
-          !(this._parent instanceof FormGroupName) &&
-          !(this._parent instanceof FormGroupDirective) &&
-          !(this._parent instanceof FormArrayName)) {
-        throw controlParentException();
+        !(this._parent instanceof FormGroupName) &&
+        !(this._parent instanceof FormGroupDirective) &&
+        !(this._parent instanceof FormArrayName)
+      ) {
+        throw controlParentException(this.name);
       }
     }
   }
 
   private _setUpControl() {
-    this._checkParentType();
+    if (typeof ngDevMode === 'undefined' || ngDevMode) {
+      this._checkParentType();
+    }
     (this as Writable<this>).control = this.formDirective.addControl(this);
     this._added = true;
   }

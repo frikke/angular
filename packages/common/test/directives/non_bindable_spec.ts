@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Component, Directive} from '@angular/core';
@@ -20,41 +20,48 @@ describe('non-bindable', () => {
   });
 
   it('should not interpolate children', waitForAsync(() => {
-       const template = '<div>{{text}}<span ngNonBindable>{{text}}</span></div>';
-       const fixture = createTestComponent(template);
+    const template = '<div>{{text}}<span ngNonBindable>{{text}}</span></div>';
+    const fixture = createTestComponent(template);
 
-       fixture.detectChanges();
-       expect(fixture.nativeElement).toHaveText('foo{{text}}');
-     }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement).toHaveText('foo{{text}}');
+  }));
 
   it('should ignore directives on child nodes', waitForAsync(() => {
-       const template = '<div ngNonBindable><span id=child test-dec>{{text}}</span></div>';
-       const fixture = createTestComponent(template);
-       fixture.detectChanges();
+    const template = '<div ngNonBindable><span id=child test-dec>{{text}}</span></div>';
+    const fixture = createTestComponent(template);
+    fixture.detectChanges();
 
-       // We must use getDOM().querySelector instead of fixture.query here
-       // since the elements inside are not compiled.
-       const span = fixture.nativeElement.querySelector('#child');
-       expect(hasClass(span, 'compiled')).toBeFalsy();
-     }));
+    // We must use getDOM().querySelector instead of fixture.query here
+    // since the elements inside are not compiled.
+    const span = fixture.nativeElement.querySelector('#child');
+    expect(hasClass(span, 'compiled')).toBeFalsy();
+  }));
 
   it('should trigger directives on the same node', waitForAsync(() => {
-       const template = '<div><span id=child ngNonBindable test-dec>{{text}}</span></div>';
-       const fixture = createTestComponent(template);
-       fixture.detectChanges();
-       const span = fixture.nativeElement.querySelector('#child');
-       expect(hasClass(span, 'compiled')).toBeTruthy();
-     }));
+    const template = '<div><span id=child ngNonBindable test-dec>{{text}}</span></div>';
+    const fixture = createTestComponent(template);
+    fixture.detectChanges();
+    const span = fixture.nativeElement.querySelector('#child');
+    expect(hasClass(span, 'compiled')).toBeTruthy();
+  }));
 });
 
-@Directive({selector: '[test-dec]'})
+@Directive({
+  selector: '[test-dec]',
+  standalone: false,
+})
 class TestDirective {
   constructor(el: ElementRef) {
     el.nativeElement.classList.add('compiled');
   }
 }
 
-@Component({selector: 'test-cmp', template: ''})
+@Component({
+  selector: 'test-cmp',
+  template: '',
+  standalone: false,
+})
 class TestComponent {
   text: string;
   constructor() {
@@ -63,6 +70,7 @@ class TestComponent {
 }
 
 function createTestComponent(template: string): ComponentFixture<TestComponent> {
-  return TestBed.overrideComponent(TestComponent, {set: {template: template}})
-      .createComponent(TestComponent);
+  return TestBed.overrideComponent(TestComponent, {set: {template: template}}).createComponent(
+    TestComponent,
+  );
 }

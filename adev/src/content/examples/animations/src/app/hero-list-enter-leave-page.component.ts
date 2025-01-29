@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
-import { HEROES } from './mock-heroes';
-import { HeroListEnterLeaveComponent } from './hero-list-enter-leave.component';
+import {Component} from '@angular/core';
+import {HEROES} from './mock-heroes';
+import {HeroListEnterLeaveComponent} from './hero-list-enter-leave.component';
 
 @Component({
-  standalone: true,
   selector: 'app-hero-list-enter-leave-page',
   template: `
     <section>
@@ -12,12 +11,12 @@ import { HeroListEnterLeaveComponent } from './hero-list-enter-leave.component';
       <app-hero-list-enter-leave [heroes]="heroes" (remove)="onRemove($event)"></app-hero-list-enter-leave>
     </section>
   `,
-  imports: [HeroListEnterLeaveComponent]
+  imports: [HeroListEnterLeaveComponent],
 })
 export class HeroListEnterLeavePageComponent {
   heroes = HEROES.slice();
 
   onRemove(id: number) {
-    this.heroes = this.heroes.filter(hero => hero.id !== id);
+    this.heroes = this.heroes.filter((hero) => hero.id !== id);
   }
 }

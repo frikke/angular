@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {InjectionToken} from '@angular/core';
@@ -15,4 +15,4 @@ import {InjectionToken} from '@angular/core';
  *
  * @publicApi
  */
-export const DOCUMENT = new InjectionToken<Document>('DocumentToken');
+export const DOCUMENT = new InjectionToken<Document>(ngDevMode ? 'DocumentToken' : '');

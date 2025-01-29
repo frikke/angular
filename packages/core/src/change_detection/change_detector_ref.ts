@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {InjectFlags} from '../di';
@@ -21,8 +21,8 @@ import {ViewRef} from '../render3/view_ref';
  * Use the methods to add and remove views from the tree, initiate change-detection,
  * and explicitly mark views as _dirty_, meaning that they have changed and need to be re-rendered.
  *
- * @see [Using change detection hooks](guide/lifecycle-hooks#using-change-detection-hooks)
- * @see [Defining custom change detection](guide/lifecycle-hooks#defining-custom-change-detection)
+ * @see [Using change detection hooks](guide/components/lifecycle#using-change-detection-hooks)
+ * @see [Defining custom change detection](guide/components/lifecycle#defining-custom-change-detection)
  *
  * @usageNotes
  *
@@ -35,8 +35,7 @@ import {ViewRef} from '../render3/view_ref';
  * (`CheckOnce`, rather than the default `CheckAlways`), then forces a second check
  * after an interval.
  *
- * <code-example path="core/ts/change_detect/change-detection.ts"
- * region="mark-for-check"></code-example>
+ * {@example core/ts/change_detect/change-detection.ts region='mark-for-check'}
  *
  * ### Detach change detector to limit how often check occurs
  *
@@ -46,7 +45,7 @@ import {ViewRef} from '../render3/view_ref';
  * less often than the changes actually occur. To do that, we detach
  * the component's change detector and perform an explicit local check every five seconds.
  *
- * <code-example path="core/ts/change_detect/change-detection.ts" region="detach"></code-example>
+ * {@example core/ts/change_detect/change-detection.ts region='detach'}
  *
  *
  * ### Reattaching a detached component
@@ -56,7 +55,7 @@ import {ViewRef} from '../render3/view_ref';
  * when the `live` property is set to false, and reattaches it when the property
  * becomes true.
  *
- * <code-example path="core/ts/change_detect/change-detection.ts" region="reattach"></code-example>
+ * {@example core/ts/change_detect/change-detection.ts region='reattach'}
  *
  * @publicApi
  */
@@ -127,13 +126,13 @@ export abstract class ChangeDetectorRef {
   static __NG_ELEMENT_ID__: (flags: InjectFlags) => ChangeDetectorRef = injectChangeDetectorRef;
 }
 
-
-
 /** Returns a ChangeDetectorRef (a.k.a. a ViewRef) */
 export function injectChangeDetectorRef(flags: InjectFlags): ChangeDetectorRef {
   return createViewRef(
-      getCurrentTNode()!, getLView(),
-      (flags & InternalInjectFlags.ForPipe) === InternalInjectFlags.ForPipe);
+    getCurrentTNode()!,
+    getLView(),
+    (flags & InternalInjectFlags.ForPipe) === InternalInjectFlags.ForPipe,
+  );
 }
 
 /**
@@ -148,12 +147,15 @@ function createViewRef(tNode: TNode, lView: LView, isPipe: boolean): ChangeDetec
   if (isComponentHost(tNode) && !isPipe) {
     // The LView represents the location where the component is declared.
     // Instead we want the LView for the component View and so we need to look it up.
-    const componentView = getComponentLViewByIndex(tNode.index, lView);  // look down
+    const componentView = getComponentLViewByIndex(tNode.index, lView); // look down
     return new ViewRef(componentView, componentView);
-  } else if (tNode.type & (TNodeType.AnyRNode | TNodeType.AnyContainer | TNodeType.Icu)) {
+  } else if (
+    tNode.type &
+    (TNodeType.AnyRNode | TNodeType.AnyContainer | TNodeType.Icu | TNodeType.LetDeclaration)
+  ) {
     // The LView represents the location where the injection is requested from.
     // We need to locate the containing LView (in case where the `lView` is an embedded view)
-    const hostComponentView = lView[DECLARATION_COMPONENT_VIEW];  // look up
+    const hostComponentView = lView[DECLARATION_COMPONENT_VIEW]; // look up
     return new ViewRef(hostComponentView, lView);
   }
   return null!;

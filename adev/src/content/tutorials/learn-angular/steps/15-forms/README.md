@@ -14,7 +14,7 @@ In this activity, you'll learn how to setup a form using a template-driven appro
 
 In `user.component.ts`, update the template by adding a text input with the `id` set to `framework`, type set to `text`.
 
-```html
+```angular-html
 <label for="framework">
   Favorite Framework:
   <input id="framework" type="text" />
@@ -35,7 +35,6 @@ import {FormsModule} from '@angular/forms';
 
 @Component({
   ...
-  standalone: true,
   imports: [FormsModule],
 })
 export class UserComponent {}

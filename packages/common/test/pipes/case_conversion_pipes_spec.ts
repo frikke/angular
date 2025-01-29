@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {LowerCasePipe, TitleCasePipe, UpperCasePipe} from '@angular/common';
@@ -45,7 +45,6 @@ describe('LowerCasePipe', () => {
       selector: 'test-component',
       imports: [LowerCasePipe],
       template: '{{ value | lowercase }}',
-      standalone: true,
     })
     class TestComponent {
       value = 'FOO';
@@ -88,7 +87,7 @@ describe('TitleCasePipe', () => {
   });
 
   it('should not capitalize letter after the quotes', () => {
-    expect(pipe.transform('it\'s complicated')).toEqual('It\'s Complicated');
+    expect(pipe.transform("it's complicated")).toEqual("It's Complicated");
   });
 
   it('should not treat non-space character as a separator', () => {
@@ -110,8 +109,9 @@ describe('TitleCasePipe', () => {
   });
 
   it('should handle numbers at the beginning of words', () => {
-    expect(pipe.transform('frodo was 1st and bilbo was 2nd'))
-        .toEqual('Frodo Was 1st And Bilbo Was 2nd');
+    expect(pipe.transform('frodo was 1st and bilbo was 2nd')).toEqual(
+      'Frodo Was 1st And Bilbo Was 2nd',
+    );
     expect(pipe.transform('1ST')).toEqual('1st');
   });
 
@@ -136,7 +136,6 @@ describe('TitleCasePipe', () => {
       selector: 'test-component',
       imports: [TitleCasePipe],
       template: '{{ value | titlecase }}',
-      standalone: true,
     })
     class TestComponent {
       value = 'foo';
@@ -185,7 +184,6 @@ describe('UpperCasePipe', () => {
       selector: 'test-component',
       imports: [UpperCasePipe],
       template: '{{ value | uppercase }}',
-      standalone: true,
     })
     class TestComponent {
       value = 'foo';

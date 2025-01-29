@@ -1,13 +1,12 @@
 // #docplaster
 // #docregion
-import { Component } from '@angular/core';
-import { HeroComponent } from '../hero/hero.component';
-import { Hero } from '../shared/hero.model';
-import { NgFor } from '@angular/common';
+import {Component} from '@angular/core';
+import {HeroComponent} from '../hero/hero.component';
+import {Hero} from '../shared/hero.model';
+import {NgFor} from '@angular/common';
 
 // #docregion example
 @Component({
-  standalone: true,
   selector: 'toh-hero-list',
   template: `
     <section>

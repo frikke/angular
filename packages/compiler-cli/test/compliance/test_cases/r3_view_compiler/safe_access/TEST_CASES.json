@@ -44,7 +44,6 @@
           "files": [
             {
               "expected": "safe_access_temporaries_template.js",
-              "templatePipelineExpected": "safe_access_temporaries_template.pipeline.js",
               "generated": "safe_access_temporaries.js"
             }
           ],
@@ -79,7 +78,6 @@
           "files": [
             {
               "expected": "safe_call_template.js",
-              "templatePipelineExpected": "safe_call_template.pipeline.js",
               "generated": "safe_call.js"
             }
           ],
@@ -97,7 +95,6 @@
           "files": [
             {
               "expected": "safe_access_non_null_template.js",
-              "templatePipelineExpected": "safe_access_non_null_template.pipeline.js",
               "generated": "safe_access_non_null.js"
             }
           ],

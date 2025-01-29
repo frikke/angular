@@ -1,19 +1,20 @@
 {
   "schematics": {
-    "block-template-entities": {
-      "version": "17.0.0",
-      "description": "Angular v17 introduces a new control flow syntax that uses the @ and } characters. This migration replaces the existing usages with their corresponding HTML entities.",
-      "factory": "./migrations/block-template-entities/bundle"
+    "explicit-standalone-flag": {
+      "version": "19.0.0",
+      "description": "Updates non-standalone Directives, Component and Pipes to 'standalone:false' and removes 'standalone:true' from those who are standalone",
+      "factory": "./bundles/explicit-standalone-flag#migrate"
     },
-    "migration-v17-compiler-options": {
-      "version": "17.0.0",
-      "description": "CompilerOption.useJit and CompilerOption.missingTranslation are unused under Ivy. This migration removes their usage",
-      "factory": "./migrations/compiler-options/bundle"
+    "pending-tasks": {
+      "version": "19.0.0",
+      "description": "Updates ExperimentalPendingTasks to PendingTasks",
+      "factory": "./bundles/pending-tasks#migrate"
     },
-    "migration-transfer-state": {
-      "version": "17.0.0",
-      "description": "Updates `TransferState`, `makeStateKey`, `StateKey` imports from `@angular/platform-browser` to `@angular/core`.",
-      "factory": "./migrations/transfer-state/bundle"
+    "provide-initializer": {
+      "version": "19.0.0",
+      "description": "Replaces `APP_INITIALIZER`, `ENVIRONMENT_INITIALIZER` & `PLATFORM_INITIALIZER` respectively with `provideAppInitializer`, `provideEnvironmentInitializer` & `providePlatformInitializer`.",
+      "factory": "./bundles/provide-initializer#migrate",
+      "optional": true
     }
   }
 }

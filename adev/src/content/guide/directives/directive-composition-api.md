@@ -16,7 +16,6 @@ works similarly to applying the `MenuBehavior` to the `<admin-menu>` element in 
 
 ```typescript
 @Component({
-  standalone: true,
   selector: 'admin-menu',
   template: 'admin-menu.html',
   hostDirectives: [MenuBehavior],
@@ -32,7 +31,7 @@ and outputs are not exposed as part of the component's public API. See
 **Angular applies host directives statically at compile time.** You cannot dynamically add
 directives at runtime.
 
-**Directives used in `hostDirectives` must be `standalone: true`.**
+**Directives used in `hostDirectives` may not specify `standalone: false`.**
 
 **Angular ignores the `selector` of directives applied in the `hostDirectives` property.**
 
@@ -44,7 +43,6 @@ in your component's API by expanding the entry in `hostDirectives`:
 
 ```typescript
 @Component({
-  standalone: true,
   selector: 'admin-menu',
   template: 'admin-menu.html',
   hostDirectives: [{
@@ -59,7 +57,7 @@ export class AdminMenu { }
 By explicitly specifying the inputs and outputs, consumers of the component with `hostDirective` can
 bind them in a template:
 
-```html
+```angular-html
 
 <admin-menu menuId="top-menu" (menuClosed)="logMenuClosed()">
 ```
@@ -69,7 +67,6 @@ component:
 
 ```typescript
 @Component({
-  standalone: true,
   selector: 'admin-menu',
   template: 'admin-menu.html',
   hostDirectives: [{
@@ -81,7 +78,7 @@ component:
 export class AdminMenu { }
 ```
 
-```html
+```angular-html
 
 <admin-menu id="top-menu" (closed)="logMenuClosed()">
 ```
@@ -108,14 +105,12 @@ export class Tooltip { }
 
 // MenuWithTooltip can compose behaviors from multiple other directives
 @Directive({
-  standalone: true,
   hostDirectives: [Tooltip, Menu],
 })
 export class MenuWithTooltip { }
 
 // CustomWidget can apply the already-composed behaviors from MenuWithTooltip
 @Directive({
-  standalone: true,
   hostDirectives: [MenuWithTooltip],
 })
 export class SpecializedMenuWithTooltip { }
@@ -126,14 +121,12 @@ export class SpecializedMenuWithTooltip { }
 ### Directive execution order
 
 Host directives go through the same lifecycle as components and directives used directly in a
-template. However, host directives always execute their constructor, lifecycle hooks, and bindings _
-before_ the component or directive on which they are applied.
+template. However, host directives always execute their constructor, lifecycle hooks, and bindings _before_ the component or directive on which they are applied.
 
 The following example shows minimal use of a host directive:
 
 ```typescript
 @Component({
-  standalone: true,
   selector: 'admin-menu',
   template: 'admin-menu.html',
   hostDirectives: [MenuBehavior],
@@ -161,13 +154,11 @@ example.
 export class Tooltip { }
 
 @Directive({
-  standalone: true,
   hostDirectives: [Tooltip],
 })
 export class CustomTooltip { }
 
 @Directive({
-  standalone: true,
   hostDirectives: [CustomTooltip],
 })
 export class EvenMoreCustomTooltip { }
@@ -196,33 +187,3 @@ providers.
 If a component or directive with `hostDirectives` and those host directives both provide the same
 injection token, the providers defined by class with `hostDirectives` take precedence over providers
 defined by the host directives.
-
-### Performance
-
-While the directive composition API offers a powerful tool for reusing common behaviors, excessive
-use of host directives can impact your application's memory use. If you create components or
-directives that use *many* host directives, you may inadvertently balloon the memory used by your
-application.
-
-The following example shows a component that applies several host directives.
-
-```typescript
-@Component({
-  standalone: true,
-  hostDirectives: [
-    DisabledState,
-    RequiredState,
-    ValidationState,
-    ColorState,
-    RippleBehavior,
-  ],
-})
-export class CustomCheckbox { }
-```
-
-This example declares a custom checkbox component that includes five host directives. This
-means that Angular will create six objects each time a `CustomCheckbox` renders— one for the
-component and one for each host directive. For a few checkboxes on a page, this won't pose any
-significant issues. However, if your page renders *hundreds* of checkboxes, such as in a table, then
-you could start to see an impact of the additional object allocations. Always be sure to profile
-your application to determine the right composition pattern for your use case.

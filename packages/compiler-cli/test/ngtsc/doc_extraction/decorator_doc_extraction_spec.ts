@@ -3,17 +3,21 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {DocEntry} from '@angular/compiler-cli/src/ngtsc/docs';
-import {DecoratorEntry, DecoratorType, EntryType} from '@angular/compiler-cli/src/ngtsc/docs/src/entities';
+import {
+  DecoratorEntry,
+  DecoratorType,
+  EntryType,
+} from '@angular/compiler-cli/src/ngtsc/docs/src/entities';
 import {runInEachFileSystem} from '@angular/compiler-cli/src/ngtsc/file_system/testing';
 import {loadStandardTestFiles} from '@angular/compiler-cli/src/ngtsc/testing';
 
 import {NgtscTestEnvironment} from '../env';
 
-const testFiles = loadStandardTestFiles({fakeCore: true, fakeCommon: true});
+const testFiles = loadStandardTestFiles({fakeCommon: true});
 
 runInEachFileSystem(() => {
   let env!: NgtscTestEnvironment;
@@ -25,13 +29,15 @@ runInEachFileSystem(() => {
     });
 
     it('should extract class decorators that define members in an interface', () => {
-      env.write('index.ts', `
+      env.write(
+        'index.ts',
+        `
         export interface Component {
           /** The template. */
           template: string;
         }
 
-        export interface ComponentDecorator { 
+        export interface ComponentDecorator {
           /** The description. */
           (obj?: Component): any;
         }
@@ -39,7 +45,8 @@ runInEachFileSystem(() => {
         function makeDecorator(): ComponentDecorator { return () => {}; }
 
         export const Component: ComponentDecorator = makeDecorator();
-      `);
+      `,
+      );
 
       const docs: DocEntry[] = env.driveDocsExtraction('index.ts');
       expect(docs.length).toBe(1);
@@ -57,13 +64,15 @@ runInEachFileSystem(() => {
     });
 
     it('should extract property decorators', () => {
-      env.write('index.ts', `
+      env.write(
+        'index.ts',
+        `
         export interface Input {
           /** The alias. */
           alias: string;
         }
 
-        export interface InputDecorator { 
+        export interface InputDecorator {
           /** The description. */
           (alias: string): any;
         }
@@ -71,7 +80,8 @@ runInEachFileSystem(() => {
         function makePropDecorator(): InputDecorator { return () => {}); }
 
         export const Input: InputDecorator = makePropDecorator();
-      `);
+      `,
+      );
 
       const docs: DocEntry[] = env.driveDocsExtraction('index.ts');
       expect(docs.length).toBe(1);
@@ -89,7 +99,9 @@ runInEachFileSystem(() => {
     });
 
     it('should extract property decorators with a type alias', () => {
-      env.write('index.ts', `
+      env.write(
+        'index.ts',
+        `
         interface Query {
           /** The read. */
           read: string;
@@ -97,7 +109,7 @@ runInEachFileSystem(() => {
 
         export type ViewChild = Query;
 
-        export interface ViewChildDecorator { 
+        export interface ViewChildDecorator {
           /** The description. */
           (alias: string): any;
         }
@@ -105,7 +117,8 @@ runInEachFileSystem(() => {
         function makePropDecorator(): ViewChildDecorator { return () => {}); }
 
         export const ViewChild: ViewChildDecorator = makePropDecorator();
-      `);
+      `,
+      );
 
       const docs: DocEntry[] = env.driveDocsExtraction('index.ts');
       expect(docs.length).toBe(1);
@@ -123,13 +136,15 @@ runInEachFileSystem(() => {
     });
 
     it('should extract param decorators', () => {
-      env.write('index.ts', `
+      env.write(
+        'index.ts',
+        `
         export interface Inject {
           /** The token. */
           token: string;
         }
 
-        export interface InjectDecorator { 
+        export interface InjectDecorator {
           /** The description. */
           (token: string) => any;
         }
@@ -137,7 +152,8 @@ runInEachFileSystem(() => {
         function makePropDecorator(): InjectDecorator { return () => {}; }
 
         export const Inject: InjectDecorator = makeParamDecorator();
-      `);
+      `,
+      );
 
       const docs: DocEntry[] = env.driveDocsExtraction('index.ts');
       expect(docs.length).toBe(1);

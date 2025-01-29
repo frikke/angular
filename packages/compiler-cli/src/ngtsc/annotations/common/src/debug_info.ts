@@ -3,23 +3,28 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {literal, R3ClassDebugInfo, WrappedNodeExpr} from '@angular/compiler';
-import * as path from 'path';
+import ts from 'typescript';
 
 import {DeclarationNode, ReflectionHost} from '../../../reflection';
+import {getProjectRelativePath} from '../../../util/src/path';
 
 export function extractClassDebugInfo(
-    clazz: DeclarationNode, reflection: ReflectionHost, rootDirs: ReadonlyArray<string>,
-    forbidOrphanRendering: boolean): R3ClassDebugInfo|null {
+  clazz: DeclarationNode,
+  reflection: ReflectionHost,
+  compilerHost: Pick<ts.CompilerHost, 'getCanonicalFileName'>,
+  rootDirs: ReadonlyArray<string>,
+  forbidOrphanRendering: boolean,
+): R3ClassDebugInfo | null {
   if (!reflection.isClass(clazz)) {
     return null;
   }
 
   const srcFile = clazz.getSourceFile();
-  const srcFileMaybeRelativePath = computeRelativePathIfPossible(srcFile.fileName, rootDirs);
+  const srcFileMaybeRelativePath = getProjectRelativePath(srcFile.fileName, rootDirs, compilerHost);
 
   return {
     type: new WrappedNodeExpr(clazz.name),
@@ -28,20 +33,4 @@ export function extractClassDebugInfo(
     lineNumber: literal(srcFile.getLineAndCharacterOfPosition(clazz.name.pos).line + 1),
     forbidOrphanRendering,
   };
-}
-
-/**
- * Computes a source file path relative to the project root folder if possible, otherwise returns
- * null.
- */
-function computeRelativePathIfPossible(filePath: string, rootDirs: ReadonlyArray<string>): string|
-    null {
-  for (const rootDir of rootDirs) {
-    const rel = path.relative(rootDir, filePath);
-    if (!rel.startsWith('..')) {
-      return rel;
-    }
-  }
-
-  return null;
 }

@@ -31,15 +31,7 @@ ng-injector-tree.hidden {
     opacity: 0.8;
 
     &:active {
-      opacity: 1
-    }
-  }
-}
-
-:host-context(.dark-theme) {
-  #nav-buttons {
-    button {
-      color: #fff;
+      opacity: 1;
     }
   }
 }
@@ -67,6 +59,10 @@ ng-injector-tree.hidden {
   -webkit-user-select: text;
   -ms-user-select: text;
   user-select: text;
+
+  &.unsupported-version {
+    color: red;
+  }
 }
 
 mat-icon {
@@ -84,16 +80,6 @@ mat-icon {
   padding: 0px 10px;
   opacity: 1;
   font-weight: 400;
-}
-
-:host-context(.dark-theme) {
-  #version-number {
-    color: #5caace;
-  }
-
-  .inspector-active {
-    color: #4688f1 !important;
-  }
 }
 
 @media only screen and (max-width: 700px) {
@@ -117,5 +103,46 @@ mat-icon {
     label {
       cursor: pointer;
     }
+  }
+}
+
+.frame-selector {
+  background-color: #e2e2e2;
+  border-radius: 2px;
+  color: #474747;
+  border: none;
+  margin: 4px 4px 2px 4px;
+  padding: 2px;
+  outline-offset: -2px;
+  width: 100px;
+  font-size: 12px;
+}
+
+:host-context(.dark-theme) {
+  .frame-selector {
+    background-color: #464646;
+    color: #fff;
+  }
+
+  #app-angular-version {
+    color: #fff;
+  }
+
+  #nav-buttons {
+    button {
+      color: #fff;
+    }
+  }
+
+  #version-number {
+    color: #5caace;
+
+    &.unsupported-version {
+      color: red;
+    }
+  }
+
+  .inspector-active {
+    color: #4688f1 !important;
   }
 }

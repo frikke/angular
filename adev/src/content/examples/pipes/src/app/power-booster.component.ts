@@ -1,13 +1,12 @@
-import { Component } from '@angular/core';
-import { ExponentialStrengthPipe } from './exponential-strength.pipe';
+import {Component} from '@angular/core';
+import {ExponentialStrengthPipe} from './exponential-strength.pipe';
 
 @Component({
-  standalone: true,
   selector: 'app-power-booster',
   template: `
     <h2>Power Booster</h2>
     <p>Super power boost: {{2 | exponentialStrength: 10}}</p>
   `,
-  imports: [ExponentialStrengthPipe]
+  imports: [ExponentialStrengthPipe],
 })
-export class PowerBoosterComponent { }
+export class PowerBoosterComponent {}

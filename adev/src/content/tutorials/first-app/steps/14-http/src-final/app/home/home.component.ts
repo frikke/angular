@@ -6,7 +6,6 @@ import {HousingService} from '../housing.service';
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [CommonModule, HousingLocationComponent],
   template: `
     <section>
@@ -39,6 +38,7 @@ export class HomeComponent {
   filterResults(text: string) {
     if (!text) {
       this.filteredLocationList = this.housingLocationList;
+      return;
     }
 
     this.filteredLocationList = this.housingLocationList.filter((housingLocation) =>

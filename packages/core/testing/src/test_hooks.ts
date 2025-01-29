@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 /**
@@ -12,7 +12,7 @@
  * allows tests to be asynchronous by either returning a promise or using a 'done' parameter.
  */
 
-import {resetFakeAsyncZone} from './fake_async';
+import {resetFakeAsyncZoneIfExists} from './fake_async';
 import {TestBedImpl} from './test_bed';
 
 // Reset the test providers and the fake async zone before each test.
@@ -32,7 +32,7 @@ function getCleanupHook(expectedTeardownValue: boolean) {
     const testBed = TestBedImpl.INSTANCE;
     if (testBed.shouldTearDownTestingModule() === expectedTeardownValue) {
       testBed.resetTestingModule();
-      resetFakeAsyncZone();
+      resetFakeAsyncZoneIfExists();
     }
   };
 }

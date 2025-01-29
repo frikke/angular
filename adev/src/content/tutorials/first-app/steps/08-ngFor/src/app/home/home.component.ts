@@ -5,7 +5,6 @@ import {HousingLocation} from '../housinglocation';
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [CommonModule, HousingLocationComponent],
   template: `
     <section>
@@ -21,7 +20,7 @@ import {HousingLocation} from '../housinglocation';
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent {
-  readonly baseUrl = 'https://angular.dev/assets/tutorials/common';
+  readonly baseUrl = 'https://angular.dev/assets/images/tutorials/common';
 
   housingLocation: HousingLocation = {
     id: 9999,

@@ -3,101 +3,68 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {setActiveConsumer} from '@angular/core/primitives/signals';
 
-import {InjectionToken, Injector} from '../di';
-import {RuntimeError, RuntimeErrorCode} from '../errors';
-import {findMatchingDehydratedView} from '../hydration/views';
+import {
+  DEFER_BLOCK_ID,
+  DEFER_BLOCK_STATE as SERIALIZED_DEFER_BLOCK_STATE,
+} from '../hydration/interfaces';
 import {populateDehydratedViewsInLContainer} from '../linker/view_container_ref';
-import {assertLContainer, assertTNodeForLView} from '../render3/assert';
 import {bindingUpdated} from '../render3/bindings';
-import {getComponentDef, getDirectiveDef, getPipeDef} from '../render3/definition';
-import {getTemplateLocationDetails} from '../render3/instructions/element_validation';
-import {markViewDirty} from '../render3/instructions/mark_view_dirty';
-import {handleError} from '../render3/instructions/shared';
-import {ɵɵtemplate} from '../render3/instructions/template';
-import {LContainer} from '../render3/interfaces/container';
-import {DirectiveDefList, PipeDefList} from '../render3/interfaces/definition';
-import {TContainerNode, TNode} from '../render3/interfaces/node';
-import {isDestroyed} from '../render3/interfaces/type_checks';
-import {HEADER_OFFSET, INJECTOR, LView, PARENT, TVIEW, TView} from '../render3/interfaces/view';
-import {getCurrentTNode, getLView, getSelectedTNode, getTView, nextBindingIndex} from '../render3/state';
-import {isPlatformBrowser} from '../render3/util/misc_utils';
-import {getConstant, getTNode, removeLViewOnDestroy, storeLViewOnDestroy} from '../render3/util/view_utils';
-import {addLViewToLContainer, createAndRenderEmbeddedLView, removeLViewFromLContainer, shouldAddViewToDom} from '../render3/view_manipulation';
-import {assertDefined, throwError} from '../util/assert';
-import {performanceMark} from '../util/performance';
-
-import {invokeAllTriggerCleanupFns, invokeTriggerCleanupFns, storeTriggerCleanupFn} from './cleanup';
+import {declareTemplate} from '../render3/instructions/template';
+import {DEHYDRATED_VIEWS} from '../render3/interfaces/container';
+import {HEADER_OFFSET, INJECTOR, TVIEW} from '../render3/interfaces/view';
+import {
+  getCurrentTNode,
+  getLView,
+  getSelectedTNode,
+  getTView,
+  nextBindingIndex,
+} from '../render3/state';
+import {removeLViewOnDestroy, storeLViewOnDestroy} from '../render3/util/view_utils';
+import {performanceMarkFeature} from '../util/performance';
+import {invokeAllTriggerCleanupFns, storeTriggerCleanupFn} from './cleanup';
 import {onHover, onInteraction, onViewport, registerDomTrigger} from './dom_triggers';
 import {onIdle} from './idle_scheduler';
-import {DEFER_BLOCK_STATE, DeferBlockBehavior, DeferBlockConfig, DeferBlockDependencyInterceptor, DeferBlockInternalState, DeferBlockState, DeferDependenciesLoadingState, DeferredLoadingBlockConfig, DeferredPlaceholderBlockConfig, DependencyResolverFn, LDeferBlockDetails, LOADING_AFTER_CLEANUP_FN, NEXT_DEFER_BLOCK_STATE, STATE_IS_FROZEN_UNTIL, TDeferBlockDetails, TriggerType} from './interfaces';
-import {onTimer, scheduleTimerTrigger} from './timer_scheduler';
-import {addDepsToRegistry, assertDeferredDependenciesLoaded, getLDeferBlockDetails, getLoadingBlockAfter, getMinimumDurationForState, getPrimaryBlockTNode, getTDeferBlockDetails, getTemplateIndexForState, setLDeferBlockDetails, setTDeferBlockDetails} from './utils';
+import {
+  DEFER_BLOCK_STATE,
+  DeferBlockInternalState,
+  DeferBlockState,
+  DeferDependenciesLoadingState,
+  DependencyResolverFn,
+  DeferBlockTrigger,
+  LDeferBlockDetails,
+  TDeferBlockDetails,
+  TriggerType,
+  SSR_UNIQUE_ID,
+  TDeferDetailsFlags,
+} from './interfaces';
+import {onTimer} from './timer_scheduler';
+import {
+  getLDeferBlockDetails,
+  getTDeferBlockDetails,
+  setLDeferBlockDetails,
+  setTDeferBlockDetails,
+  trackTriggerForDebugging,
+} from './utils';
+import {DEHYDRATED_BLOCK_REGISTRY, DehydratedBlockRegistry} from './registry';
+import {assertIncrementalHydrationIsConfigured, assertSsrIdDefined} from '../hydration/utils';
+import {ɵɵdeferEnableTimerScheduling, renderPlaceholder} from './rendering';
 
-/**
- * **INTERNAL**, avoid referencing it in application code.
- *
- * Injector token that allows to provide `DeferBlockDependencyInterceptor` class
- * implementation.
- */
-export const DEFER_BLOCK_DEPENDENCY_INTERCEPTOR =
-    new InjectionToken<DeferBlockDependencyInterceptor>('DEFER_BLOCK_DEPENDENCY_INTERCEPTOR');
-
-/**
- * **INTERNAL**, token used for configuring defer block behavior.
- */
-export const DEFER_BLOCK_CONFIG =
-    new InjectionToken<DeferBlockConfig>(ngDevMode ? 'DEFER_BLOCK_CONFIG' : '');
-
-/**
- * Returns whether defer blocks should be triggered.
- *
- * Currently, defer blocks are not triggered on the server,
- * only placeholder content is rendered (if provided).
- */
-function shouldTriggerDeferBlock(injector: Injector): boolean {
-  const config = injector.get(DEFER_BLOCK_CONFIG, null, {optional: true});
-  if (config?.behavior === DeferBlockBehavior.Manual) {
-    return false;
-  }
-  return isPlatformBrowser(injector);
-}
-
-/**
- * Reference to the timer-based scheduler implementation of defer block state
- * rendering method. It's used to make timer-based scheduling tree-shakable.
- * If `minimum` or `after` parameters are used, compiler generates an extra
- * argument for the `ɵɵdefer` instruction, which references a timer-based
- * implementation.
- */
-let applyDeferBlockStateWithSchedulingImpl: (typeof applyDeferBlockState)|null = null;
-
-/**
- * Enables timer-related scheduling if `after` or `minimum` parameters are setup
- * on the `@loading` or `@placeholder` blocks.
- */
-export function ɵɵdeferEnableTimerScheduling(
-    tView: TView, tDetails: TDeferBlockDetails, placeholderConfigIndex?: number|null,
-    loadingConfigIndex?: number|null) {
-  const tViewConsts = tView.consts;
-  if (placeholderConfigIndex != null) {
-    tDetails.placeholderBlockConfig =
-        getConstant<DeferredPlaceholderBlockConfig>(tViewConsts, placeholderConfigIndex);
-  }
-  if (loadingConfigIndex != null) {
-    tDetails.loadingBlockConfig =
-        getConstant<DeferredLoadingBlockConfig>(tViewConsts, loadingConfigIndex);
-  }
-
-  // Enable implementation that supports timer-based scheduling.
-  if (applyDeferBlockStateWithSchedulingImpl === null) {
-    applyDeferBlockStateWithSchedulingImpl = applyDeferBlockStateWithScheduling;
-  }
-}
+import {
+  getHydrateTriggers,
+  triggerHydrationFromBlockName,
+  scheduleDelayedHydrating,
+  scheduleDelayedPrefetching,
+  scheduleDelayedTrigger,
+  triggerDeferBlock,
+  triggerPrefetching,
+  triggerResourceLoading,
+  shouldAttachTrigger,
+} from './triggering';
 
 /**
  * Creates runtime data structures for defer blocks.
@@ -114,23 +81,32 @@ export function ɵɵdeferEnableTimerScheduling(
  *     placeholder block.
  * @param enableTimerScheduling Function that enables timer-related scheduling if `after`
  *     or `minimum` parameters are setup on the `@loading` or `@placeholder` blocks.
+ * @param flags A set of flags to define a particular behavior (e.g. to indicate that
+ *              hydrate triggers are present and regular triggers should be deactivated
+ *              in certain scenarios).
  *
  * @codeGenApi
  */
 export function ɵɵdefer(
-    index: number, primaryTmplIndex: number, dependencyResolverFn?: DependencyResolverFn|null,
-    loadingTmplIndex?: number|null, placeholderTmplIndex?: number|null,
-    errorTmplIndex?: number|null, loadingConfigIndex?: number|null,
-    placeholderConfigIndex?: number|null,
-    enableTimerScheduling?: typeof ɵɵdeferEnableTimerScheduling) {
+  index: number,
+  primaryTmplIndex: number,
+  dependencyResolverFn?: DependencyResolverFn | null,
+  loadingTmplIndex?: number | null,
+  placeholderTmplIndex?: number | null,
+  errorTmplIndex?: number | null,
+  loadingConfigIndex?: number | null,
+  placeholderConfigIndex?: number | null,
+  enableTimerScheduling?: typeof ɵɵdeferEnableTimerScheduling,
+  flags?: TDeferDetailsFlags | null,
+) {
   const lView = getLView();
   const tView = getTView();
   const adjustedIndex = index + HEADER_OFFSET;
-
-  ɵɵtemplate(index, null, 0, 0);
+  const tNode = declareTemplate(lView, tView, index, null, 0, 0);
+  const injector = lView[INJECTOR];
 
   if (tView.firstCreatePass) {
-    performanceMark('mark_use_counter', {detail: {feature: 'NgDefer'}});
+    performanceMarkFeature('NgDefer');
 
     const tDetails: TDeferBlockDetails = {
       primaryTmplIndex,
@@ -142,12 +118,15 @@ export function ɵɵdefer(
       dependencyResolverFn: dependencyResolverFn ?? null,
       loadingState: DeferDependenciesLoadingState.NOT_STARTED,
       loadingPromise: null,
+      providers: null,
+      hydrateTriggers: null,
+      debug: null,
+      flags: flags ?? TDeferDetailsFlags.Default,
     };
     enableTimerScheduling?.(tView, tDetails, placeholderConfigIndex, loadingConfigIndex);
     setTDeferBlockDetails(tView, adjustedIndex, tDetails);
   }
 
-  const tNode = getCurrentTNode()!;
   const lContainer = lView[adjustedIndex];
 
   // If hydration is enabled, looks up dehydrated views in the DOM
@@ -155,23 +134,51 @@ export function ɵɵdefer(
   // In client-only mode, this function is a noop.
   populateDehydratedViewsInLContainer(lContainer, tNode, lView);
 
+  let ssrBlockState = null;
+  let ssrUniqueId: string | null = null;
+  if (lContainer[DEHYDRATED_VIEWS]?.length > 0) {
+    const info = lContainer[DEHYDRATED_VIEWS][0].data;
+    ssrUniqueId = info[DEFER_BLOCK_ID] ?? null;
+    ssrBlockState = info[SERIALIZED_DEFER_BLOCK_STATE];
+  }
+
   // Init instance-specific defer details and store it.
   const lDetails: LDeferBlockDetails = [
-    null,                             // NEXT_DEFER_BLOCK_STATE
-    DeferBlockInternalState.Initial,  // DEFER_BLOCK_STATE
-    null,                             // STATE_IS_FROZEN_UNTIL
-    null,                             // LOADING_AFTER_CLEANUP_FN
-    null,                             // TRIGGER_CLEANUP_FNS
-    null                              // PREFETCH_TRIGGER_CLEANUP_FNS
+    null, // NEXT_DEFER_BLOCK_STATE
+    DeferBlockInternalState.Initial, // DEFER_BLOCK_STATE
+    null, // STATE_IS_FROZEN_UNTIL
+    null, // LOADING_AFTER_CLEANUP_FN
+    null, // TRIGGER_CLEANUP_FNS
+    null, // PREFETCH_TRIGGER_CLEANUP_FNS
+    ssrUniqueId, // SSR_UNIQUE_ID
+    ssrBlockState, // SSR_BLOCK_STATE
+    null, // ON_COMPLETE_FNS
+    null, // HYDRATE_TRIGGER_CLEANUP_FNS
   ];
   setLDeferBlockDetails(lView, adjustedIndex, lDetails);
 
-  const cleanupTriggersFn = () => invokeAllTriggerCleanupFns(lDetails);
+  let registry: DehydratedBlockRegistry | null = null;
+  if (ssrUniqueId !== null) {
+    ngDevMode && assertIncrementalHydrationIsConfigured(injector);
+
+    // Store this defer block in the registry, to have an access to
+    // internal data structures from hydration runtime code.
+    registry = injector.get(DEHYDRATED_BLOCK_REGISTRY);
+    registry.add(ssrUniqueId, {lView, tNode, lContainer});
+  }
+
+  const onLViewDestroy = () => {
+    invokeAllTriggerCleanupFns(lDetails);
+    if (ssrUniqueId !== null) {
+      registry?.cleanup([ssrUniqueId]);
+    }
+  };
 
   // When defer block is triggered - unsubscribe from LView destroy cleanup.
-  storeTriggerCleanupFn(
-      TriggerType.Regular, lDetails, () => removeLViewOnDestroy(lView, cleanupTriggersFn));
-  storeLViewOnDestroy(lView, cleanupTriggersFn);
+  storeTriggerCleanupFn(TriggerType.Regular, lDetails, () =>
+    removeLViewOnDestroy(lView, onLViewDestroy),
+  );
+  storeLViewOnDestroy(lView, onLViewDestroy);
 }
 
 /**
@@ -180,25 +187,30 @@ export function ɵɵdefer(
  */
 export function ɵɵdeferWhen(rawValue: unknown) {
   const lView = getLView();
+  const tNode = getSelectedTNode();
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'when <expression>');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
   const bindingIndex = nextBindingIndex();
   if (bindingUpdated(lView, bindingIndex, rawValue)) {
     const prevConsumer = setActiveConsumer(null);
     try {
-      const value = Boolean(rawValue);  // handle truthy or falsy values
-      const tNode = getSelectedTNode();
+      const value = Boolean(rawValue); // handle truthy or falsy values
       const lDetails = getLDeferBlockDetails(lView, tNode);
       const renderedState = lDetails[DEFER_BLOCK_STATE];
       if (value === false && renderedState === DeferBlockInternalState.Initial) {
         // If nothing is rendered yet, render a placeholder (if defined).
         renderPlaceholder(lView, tNode);
       } else if (
-          value === true &&
-          (renderedState === DeferBlockInternalState.Initial ||
-           renderedState === DeferBlockState.Placeholder)) {
-        // The `when` condition has changed to `true`, trigger defer block loading
-        // if the block is either in initial (nothing is rendered) or a placeholder
-        // state.
-        triggerDeferBlock(lView, tNode);
+        value === true &&
+        (renderedState === DeferBlockInternalState.Initial ||
+          renderedState === DeferBlockState.Placeholder)
+      ) {
+        triggerDeferBlock(TriggerType.Regular, lView, tNode);
       }
     } finally {
       setActiveConsumer(prevConsumer);
@@ -212,12 +224,20 @@ export function ɵɵdeferWhen(rawValue: unknown) {
  */
 export function ɵɵdeferPrefetchWhen(rawValue: unknown) {
   const lView = getLView();
+  const tNode = getSelectedTNode();
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'prefetch when <expression>');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
   const bindingIndex = nextBindingIndex();
 
   if (bindingUpdated(lView, bindingIndex, rawValue)) {
     const prevConsumer = setActiveConsumer(null);
     try {
-      const value = Boolean(rawValue);  // handle truthy or falsy values
+      const value = Boolean(rawValue); // handle truthy or falsy values
       const tView = lView[TVIEW];
       const tNode = getSelectedTNode();
       const tDetails = getTDeferBlockDetails(tView, tNode);
@@ -232,10 +252,88 @@ export function ɵɵdeferPrefetchWhen(rawValue: unknown) {
 }
 
 /**
+ * Hydrates the deferred content when a value becomes truthy.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateWhen(rawValue: unknown) {
+  const lView = getLView();
+  const tNode = getSelectedTNode();
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate when <expression>');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  // TODO(incremental-hydration): audit all defer instructions to reduce unnecessary work by
+  // moving function calls inside their relevant control flow blocks
+  const bindingIndex = nextBindingIndex();
+  const tView = getTView();
+  const hydrateTriggers = getHydrateTriggers(tView, tNode);
+  hydrateTriggers.set(DeferBlockTrigger.When, null);
+
+  if (bindingUpdated(lView, bindingIndex, rawValue)) {
+    if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+      // We are on the server and SSR for defer blocks is enabled.
+      triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+    } else {
+      const injector = lView[INJECTOR];
+      const prevConsumer = setActiveConsumer(null);
+      try {
+        const value = Boolean(rawValue); // handle truthy or falsy values
+        if (value === true) {
+          // The `when` condition has changed to `true`, trigger defer block loading
+          // if the block is either in initial (nothing is rendered) or a placeholder
+          // state.
+          const lDetails = getLDeferBlockDetails(lView, tNode);
+          const ssrUniqueId = lDetails[SSR_UNIQUE_ID]!;
+          ngDevMode && assertSsrIdDefined(ssrUniqueId);
+          triggerHydrationFromBlockName(injector, ssrUniqueId);
+        }
+      } finally {
+        setActiveConsumer(prevConsumer);
+      }
+    }
+  }
+}
+
+/**
+ * Specifies that hydration never occurs.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateNever() {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate never');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Never, null);
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    // We are on the server and SSR for defer blocks is enabled.
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+  }
+}
+
+/**
  * Sets up logic to handle the `on idle` deferred trigger.
  * @codeGenApi
  */
 export function ɵɵdeferOnIdle() {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'on idle');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
   scheduleDelayedTrigger(onIdle);
 }
 
@@ -244,7 +342,41 @@ export function ɵɵdeferOnIdle() {
  * @codeGenApi
  */
 export function ɵɵdeferPrefetchOnIdle() {
-  scheduleDelayedPrefetching(onIdle);
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'prefetch on idle');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
+  scheduleDelayedPrefetching(onIdle, DeferBlockTrigger.Idle);
+}
+
+/**
+ * Sets up logic to handle the `on idle` deferred trigger.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateOnIdle() {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate on idle');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Idle, null);
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    // We are on the server and SSR for defer blocks is enabled.
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+  } else {
+    scheduleDelayedHydrating(onIdle, lView, tNode);
+  }
 }
 
 /**
@@ -254,18 +386,22 @@ export function ɵɵdeferPrefetchOnIdle() {
 export function ɵɵdeferOnImmediate() {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
-  const tView = lView[TVIEW];
-  const tDetails = getTDeferBlockDetails(tView, tNode);
 
-  // Render placeholder block only if loading template is not present
-  // to avoid content flickering, since it would be immediately replaced
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'on immediate');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
+  // Render placeholder block only if loading template is not present and we're on
+  // the client to avoid content flickering, since it would be immediately replaced
   // by the loading block.
+  const tDetails = getTDeferBlockDetails(lView[TVIEW], tNode);
   if (tDetails.loadingTmplIndex === null) {
     renderPlaceholder(lView, tNode);
   }
-  triggerDeferBlock(lView, tNode);
+  triggerDeferBlock(TriggerType.Regular, lView, tNode);
 }
-
 
 /**
  * Sets up logic to handle the `prefetch on immediate` deferred trigger.
@@ -274,6 +410,13 @@ export function ɵɵdeferOnImmediate() {
 export function ɵɵdeferPrefetchOnImmediate() {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'prefetch on immediate');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
   const tView = lView[TVIEW];
   const tDetails = getTDeferBlockDetails(tView, tNode);
 
@@ -283,11 +426,47 @@ export function ɵɵdeferPrefetchOnImmediate() {
 }
 
 /**
+ * Sets up logic to handle the `on immediate` hydrate trigger.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateOnImmediate() {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate on immediate');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Immediate, null);
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+  } else {
+    const injector = lView[INJECTOR];
+    const lDetails = getLDeferBlockDetails(lView, tNode);
+    const ssrUniqueId = lDetails[SSR_UNIQUE_ID]!;
+    ngDevMode && assertSsrIdDefined(ssrUniqueId);
+    triggerHydrationFromBlockName(injector, ssrUniqueId);
+  }
+}
+/**
  * Creates runtime data structures for the `on timer` deferred trigger.
  * @param delay Amount of time to wait before loading the content.
  * @codeGenApi
  */
 export function ɵɵdeferOnTimer(delay: number) {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, `on timer(${delay}ms)`);
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
   scheduleDelayedTrigger(onTimer(delay));
 }
 
@@ -297,7 +476,42 @@ export function ɵɵdeferOnTimer(delay: number) {
  * @codeGenApi
  */
 export function ɵɵdeferPrefetchOnTimer(delay: number) {
-  scheduleDelayedPrefetching(onTimer(delay));
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, `prefetch on timer(${delay}ms)`);
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
+  scheduleDelayedPrefetching(onTimer(delay), DeferBlockTrigger.Timer);
+}
+
+/**
+ * Creates runtime data structures for the `on timer` hydrate trigger.
+ * @param delay Amount of time to wait before loading the content.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateOnTimer(delay: number) {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, `hydrate on timer(${delay}ms)`);
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Timer, {delay});
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    // We are on the server and SSR for defer blocks is enabled.
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+  } else {
+    scheduleDelayedHydrating(onTimer(delay), lView, tNode);
+  }
 }
 
 /**
@@ -310,10 +524,30 @@ export function ɵɵdeferOnHover(triggerIndex: number, walkUpTimes?: number) {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
 
+  if (ngDevMode) {
+    trackTriggerForDebugging(
+      lView[TVIEW],
+      tNode,
+      `on hover${walkUpTimes === -1 ? '' : '(<target>)'}`,
+    );
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
   renderPlaceholder(lView, tNode);
-  registerDomTrigger(
-      lView, tNode, triggerIndex, walkUpTimes, onHover, () => triggerDeferBlock(lView, tNode),
-      TriggerType.Regular);
+
+  // Avoid adding event listeners when this instruction is invoked on the server.
+  if (!(typeof ngServerMode !== 'undefined' && ngServerMode)) {
+    registerDomTrigger(
+      lView,
+      tNode,
+      triggerIndex,
+      walkUpTimes,
+      onHover,
+      () => triggerDeferBlock(TriggerType.Regular, lView, tNode),
+      TriggerType.Regular,
+    );
+  }
 }
 
 /**
@@ -325,14 +559,56 @@ export function ɵɵdeferOnHover(triggerIndex: number, walkUpTimes?: number) {
 export function ɵɵdeferPrefetchOnHover(triggerIndex: number, walkUpTimes?: number) {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(
+      lView[TVIEW],
+      tNode,
+      `prefetch on hover${walkUpTimes === -1 ? '' : '(<target>)'}`,
+    );
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
   const tView = lView[TVIEW];
   const tDetails = getTDeferBlockDetails(tView, tNode);
 
   if (tDetails.loadingState === DeferDependenciesLoadingState.NOT_STARTED) {
     registerDomTrigger(
-        lView, tNode, triggerIndex, walkUpTimes, onHover,
-        () => triggerPrefetching(tDetails, lView, tNode), TriggerType.Prefetch);
+      lView,
+      tNode,
+      triggerIndex,
+      walkUpTimes,
+      onHover,
+      () => triggerPrefetching(tDetails, lView, tNode),
+      TriggerType.Prefetch,
+    );
   }
+}
+
+/**
+ * Creates runtime data structures for the `on hover` hydrate trigger.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateOnHover() {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate on hover');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Hover, null);
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    // We are on the server and SSR for defer blocks is enabled.
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+  }
+  // The actual triggering of hydration on hover is handled by JSAction in
+  // event_replay.ts.
 }
 
 /**
@@ -345,10 +621,30 @@ export function ɵɵdeferOnInteraction(triggerIndex: number, walkUpTimes?: numbe
   const lView = getLView();
   const tNode = getCurrentTNode()!;
 
+  if (ngDevMode) {
+    trackTriggerForDebugging(
+      lView[TVIEW],
+      tNode,
+      `on interaction${walkUpTimes === -1 ? '' : '(<target>)'}`,
+    );
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
   renderPlaceholder(lView, tNode);
-  registerDomTrigger(
-      lView, tNode, triggerIndex, walkUpTimes, onInteraction, () => triggerDeferBlock(lView, tNode),
-      TriggerType.Regular);
+
+  // Avoid adding event listeners when this instruction is invoked on the server.
+  if (!(typeof ngServerMode !== 'undefined' && ngServerMode)) {
+    registerDomTrigger(
+      lView,
+      tNode,
+      triggerIndex,
+      walkUpTimes,
+      onInteraction,
+      () => triggerDeferBlock(TriggerType.Regular, lView, tNode),
+      TriggerType.Regular,
+    );
+  }
 }
 
 /**
@@ -360,14 +656,56 @@ export function ɵɵdeferOnInteraction(triggerIndex: number, walkUpTimes?: numbe
 export function ɵɵdeferPrefetchOnInteraction(triggerIndex: number, walkUpTimes?: number) {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(
+      lView[TVIEW],
+      tNode,
+      `prefetch on interaction${walkUpTimes === -1 ? '' : '(<target>)'}`,
+    );
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
   const tView = lView[TVIEW];
   const tDetails = getTDeferBlockDetails(tView, tNode);
 
   if (tDetails.loadingState === DeferDependenciesLoadingState.NOT_STARTED) {
     registerDomTrigger(
-        lView, tNode, triggerIndex, walkUpTimes, onInteraction,
-        () => triggerPrefetching(tDetails, lView, tNode), TriggerType.Prefetch);
+      lView,
+      tNode,
+      triggerIndex,
+      walkUpTimes,
+      onInteraction,
+      () => triggerPrefetching(tDetails, lView, tNode),
+      TriggerType.Prefetch,
+    );
   }
+}
+
+/**
+ * Creates runtime data structures for the `on interaction` hydrate trigger.
+ * @codeGenApi
+ */
+export function ɵɵdeferHydrateOnInteraction() {
+  const lView = getLView();
+  const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate on interaction');
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Interaction, null);
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    // We are on the server and SSR for defer blocks is enabled.
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
+  }
+  // The actual triggering of hydration on interaction is handled by JSAction in
+  // event_replay.ts.
 }
 
 /**
@@ -380,10 +718,30 @@ export function ɵɵdeferOnViewport(triggerIndex: number, walkUpTimes?: number) 
   const lView = getLView();
   const tNode = getCurrentTNode()!;
 
+  if (ngDevMode) {
+    trackTriggerForDebugging(
+      lView[TVIEW],
+      tNode,
+      `on viewport${walkUpTimes === -1 ? '' : '(<target>)'}`,
+    );
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Regular, lView, tNode)) return;
+
   renderPlaceholder(lView, tNode);
-  registerDomTrigger(
-      lView, tNode, triggerIndex, walkUpTimes, onViewport, () => triggerDeferBlock(lView, tNode),
-      TriggerType.Regular);
+
+  // Avoid adding event listeners when this instruction is invoked on the server.
+  if (!(typeof ngServerMode !== 'undefined' && ngServerMode)) {
+    registerDomTrigger(
+      lView,
+      tNode,
+      triggerIndex,
+      walkUpTimes,
+      onViewport,
+      () => triggerDeferBlock(TriggerType.Regular, lView, tNode),
+      TriggerType.Regular,
+    );
+  }
 }
 
 /**
@@ -395,410 +753,54 @@ export function ɵɵdeferOnViewport(triggerIndex: number, walkUpTimes?: number) 
 export function ɵɵdeferPrefetchOnViewport(triggerIndex: number, walkUpTimes?: number) {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
+
+  if (ngDevMode) {
+    trackTriggerForDebugging(
+      lView[TVIEW],
+      tNode,
+      `prefetch on viewport${walkUpTimes === -1 ? '' : '(<target>)'}`,
+    );
+  }
+
+  if (!shouldAttachTrigger(TriggerType.Prefetch, lView, tNode)) return;
+
   const tView = lView[TVIEW];
   const tDetails = getTDeferBlockDetails(tView, tNode);
 
   if (tDetails.loadingState === DeferDependenciesLoadingState.NOT_STARTED) {
     registerDomTrigger(
-        lView, tNode, triggerIndex, walkUpTimes, onViewport,
-        () => triggerPrefetching(tDetails, lView, tNode), TriggerType.Prefetch);
+      lView,
+      tNode,
+      triggerIndex,
+      walkUpTimes,
+      onViewport,
+      () => triggerPrefetching(tDetails, lView, tNode),
+      TriggerType.Prefetch,
+    );
   }
 }
 
-/********** Helper functions **********/
-
 /**
- * Schedules triggering of a defer block for `on idle` and `on timer` conditions.
+ * Creates runtime data structures for the `on viewport` hydrate trigger.
+ * @codeGenApi
  */
-function scheduleDelayedTrigger(
-    scheduleFn: (callback: VoidFunction, lView: LView) => VoidFunction) {
+export function ɵɵdeferHydrateOnViewport() {
   const lView = getLView();
   const tNode = getCurrentTNode()!;
-
-  renderPlaceholder(lView, tNode);
-  const cleanupFn = scheduleFn(() => triggerDeferBlock(lView, tNode), lView);
-  const lDetails = getLDeferBlockDetails(lView, tNode);
-  storeTriggerCleanupFn(TriggerType.Regular, lDetails, cleanupFn);
-}
-
-/**
- * Schedules prefetching for `on idle` and `on timer` triggers.
- *
- * @param scheduleFn A function that does the scheduling.
- */
-function scheduleDelayedPrefetching(
-    scheduleFn: (callback: VoidFunction, lView: LView) => VoidFunction) {
-  const lView = getLView();
-  const tNode = getCurrentTNode()!;
-  const tView = lView[TVIEW];
-  const tDetails = getTDeferBlockDetails(tView, tNode);
-
-  if (tDetails.loadingState === DeferDependenciesLoadingState.NOT_STARTED) {
-    const lDetails = getLDeferBlockDetails(lView, tNode);
-    const prefetch = () => triggerPrefetching(tDetails, lView, tNode);
-    const cleanupFn = scheduleFn(prefetch, lView);
-    storeTriggerCleanupFn(TriggerType.Prefetch, lDetails, cleanupFn);
-  }
-}
-
-/**
- * Transitions a defer block to the new state. Updates the  necessary
- * data structures and renders corresponding block.
- *
- * @param newState New state that should be applied to the defer block.
- * @param tNode TNode that represents a defer block.
- * @param lContainer Represents an instance of a defer block.
- * @param skipTimerScheduling Indicates that `@loading` and `@placeholder` block
- *   should be rendered immediately, even if they have `after` or `minimum` config
- *   options setup. This flag to needed for testing APIs to transition defer block
- *   between states via `DeferFixture.render` method.
- */
-export function renderDeferBlockState(
-    newState: DeferBlockState, tNode: TNode, lContainer: LContainer,
-    skipTimerScheduling = false): void {
-  const hostLView = lContainer[PARENT];
-  const hostTView = hostLView[TVIEW];
-
-  // Check if this view is not destroyed. Since the loading process was async,
-  // the view might end up being destroyed by the time rendering happens.
-  if (isDestroyed(hostLView)) return;
-
-  // Make sure this TNode belongs to TView that represents host LView.
-  ngDevMode && assertTNodeForLView(tNode, hostLView);
-
-  const lDetails = getLDeferBlockDetails(hostLView, tNode);
-
-  ngDevMode && assertDefined(lDetails, 'Expected a defer block state defined');
-
-  const currentState = lDetails[DEFER_BLOCK_STATE];
-
-  if (isValidStateChange(currentState, newState) &&
-      isValidStateChange(lDetails[NEXT_DEFER_BLOCK_STATE] ?? -1, newState)) {
-    const tDetails = getTDeferBlockDetails(hostTView, tNode);
-    const needsScheduling = !skipTimerScheduling &&
-        (getLoadingBlockAfter(tDetails) !== null ||
-         getMinimumDurationForState(tDetails, DeferBlockState.Loading) !== null ||
-         getMinimumDurationForState(tDetails, DeferBlockState.Placeholder));
-
-    if (ngDevMode && needsScheduling) {
-      assertDefined(
-          applyDeferBlockStateWithSchedulingImpl, 'Expected scheduling function to be defined');
-    }
-
-    const applyStateFn =
-        needsScheduling ? applyDeferBlockStateWithSchedulingImpl! : applyDeferBlockState;
-    try {
-      applyStateFn(newState, lDetails, lContainer, tNode, hostLView);
-    } catch (error: unknown) {
-      handleError(hostLView, error);
-    }
-  }
-}
-
-/**
- * Applies changes to the DOM to reflect a given state.
- */
-function applyDeferBlockState(
-    newState: DeferBlockState, lDetails: LDeferBlockDetails, lContainer: LContainer, tNode: TNode,
-    hostLView: LView<unknown>) {
-  const stateTmplIndex = getTemplateIndexForState(newState, hostLView, tNode);
-
-  if (stateTmplIndex !== null) {
-    lDetails[DEFER_BLOCK_STATE] = newState;
-    const hostTView = hostLView[TVIEW];
-    const adjustedIndex = stateTmplIndex + HEADER_OFFSET;
-    const tNode = getTNode(hostTView, adjustedIndex) as TContainerNode;
-
-    // There is only 1 view that can be present in an LContainer that
-    // represents a defer block, so always refer to the first one.
-    const viewIndex = 0;
-
-    removeLViewFromLContainer(lContainer, viewIndex);
-    const dehydratedView = findMatchingDehydratedView(lContainer, tNode.tView!.ssrId);
-    const embeddedLView = createAndRenderEmbeddedLView(hostLView, tNode, null, {dehydratedView});
-    addLViewToLContainer(
-        lContainer, embeddedLView, viewIndex, shouldAddViewToDom(tNode, dehydratedView));
-    markViewDirty(embeddedLView);
-  }
-}
-
-/**
- * Extends the `applyDeferBlockState` with timer-based scheduling.
- * This function becomes available on a page if there are defer blocks
- * that use `after` or `minimum` parameters in the `@loading` or
- * `@placeholder` blocks.
- */
-function applyDeferBlockStateWithScheduling(
-    newState: DeferBlockState, lDetails: LDeferBlockDetails, lContainer: LContainer, tNode: TNode,
-    hostLView: LView<unknown>) {
-  const now = Date.now();
-  const hostTView = hostLView[TVIEW];
-  const tDetails = getTDeferBlockDetails(hostTView, tNode);
-
-  if (lDetails[STATE_IS_FROZEN_UNTIL] === null || lDetails[STATE_IS_FROZEN_UNTIL] <= now) {
-    lDetails[STATE_IS_FROZEN_UNTIL] = null;
-
-    const loadingAfter = getLoadingBlockAfter(tDetails);
-    const inLoadingAfterPhase = lDetails[LOADING_AFTER_CLEANUP_FN] !== null;
-    if (newState === DeferBlockState.Loading && loadingAfter !== null && !inLoadingAfterPhase) {
-      // Trying to render loading, but it has an `after` config,
-      // so schedule an update action after a timeout.
-      lDetails[NEXT_DEFER_BLOCK_STATE] = newState;
-      const cleanupFn =
-          scheduleDeferBlockUpdate(loadingAfter, lDetails, tNode, lContainer, hostLView);
-      lDetails[LOADING_AFTER_CLEANUP_FN] = cleanupFn;
-    } else {
-      // If we transition to a complete or an error state and there is a pending
-      // operation to render loading after a timeout - invoke a cleanup operation,
-      // which stops the timer.
-      if (newState > DeferBlockState.Loading && inLoadingAfterPhase) {
-        lDetails[LOADING_AFTER_CLEANUP_FN]!();
-        lDetails[LOADING_AFTER_CLEANUP_FN] = null;
-        lDetails[NEXT_DEFER_BLOCK_STATE] = null;
-      }
-
-      applyDeferBlockState(newState, lDetails, lContainer, tNode, hostLView);
-
-      const duration = getMinimumDurationForState(tDetails, newState);
-      if (duration !== null) {
-        lDetails[STATE_IS_FROZEN_UNTIL] = now + duration;
-        scheduleDeferBlockUpdate(duration, lDetails, tNode, lContainer, hostLView);
-      }
-    }
-  } else {
-    // We are still rendering the previous state.
-    // Update the `NEXT_DEFER_BLOCK_STATE`, which would be
-    // picked up once it's time to transition to the next state.
-    lDetails[NEXT_DEFER_BLOCK_STATE] = newState;
-  }
-}
-
-/**
- * Schedules an update operation after a specified timeout.
- */
-function scheduleDeferBlockUpdate(
-    timeout: number, lDetails: LDeferBlockDetails, tNode: TNode, lContainer: LContainer,
-    hostLView: LView<unknown>): VoidFunction {
-  const callback = () => {
-    const nextState = lDetails[NEXT_DEFER_BLOCK_STATE];
-    lDetails[STATE_IS_FROZEN_UNTIL] = null;
-    lDetails[NEXT_DEFER_BLOCK_STATE] = null;
-    if (nextState !== null) {
-      renderDeferBlockState(nextState, tNode, lContainer);
-    }
-  };
-  return scheduleTimerTrigger(timeout, callback, hostLView);
-}
-
-/**
- * Checks whether we can transition to the next state.
- *
- * We transition to the next state if the previous state was represented
- * with a number that is less than the next state. For example, if the current
- * state is "loading" (represented as `1`), we should not show a placeholder
- * (represented as `0`), but we can show a completed state (represented as `2`)
- * or an error state (represented as `3`).
- */
-function isValidStateChange(
-    currentState: DeferBlockState|DeferBlockInternalState, newState: DeferBlockState): boolean {
-  return currentState < newState;
-}
-
-/**
- * Trigger prefetching of dependencies for a defer block.
- *
- * @param tDetails Static information about this defer block.
- * @param lView LView of a host view.
- */
-export function triggerPrefetching(tDetails: TDeferBlockDetails, lView: LView, tNode: TNode) {
-  if (lView[INJECTOR] && shouldTriggerDeferBlock(lView[INJECTOR]!)) {
-    triggerResourceLoading(tDetails, lView, tNode);
-  }
-}
-
-/**
- * Trigger loading of defer block dependencies if the process hasn't started yet.
- *
- * @param tDetails Static information about this defer block.
- * @param lView LView of a host view.
- */
-export function triggerResourceLoading(tDetails: TDeferBlockDetails, lView: LView, tNode: TNode) {
-  const injector = lView[INJECTOR]!;
-  const tView = lView[TVIEW];
-
-  if (tDetails.loadingState !== DeferDependenciesLoadingState.NOT_STARTED) {
-    // If the loading status is different from initial one, it means that
-    // the loading of dependencies is in progress and there is nothing to do
-    // in this function. All details can be obtained from the `tDetails` object.
-    return;
-  }
-
-  const lDetails = getLDeferBlockDetails(lView, tNode);
-  const primaryBlockTNode = getPrimaryBlockTNode(tView, tDetails);
-
-  // Switch from NOT_STARTED -> IN_PROGRESS state.
-  tDetails.loadingState = DeferDependenciesLoadingState.IN_PROGRESS;
-
-  // Prefetching is triggered, cleanup all registered prefetch triggers.
-  invokeTriggerCleanupFns(TriggerType.Prefetch, lDetails);
-
-  let dependenciesFn = tDetails.dependencyResolverFn;
 
   if (ngDevMode) {
-    // Check if dependency function interceptor is configured.
-    const deferDependencyInterceptor =
-        injector.get(DEFER_BLOCK_DEPENDENCY_INTERCEPTOR, null, {optional: true});
-
-    if (deferDependencyInterceptor) {
-      dependenciesFn = deferDependencyInterceptor.intercept(dependenciesFn);
-    }
+    trackTriggerForDebugging(lView[TVIEW], tNode, 'hydrate on viewport');
   }
 
-  // The `dependenciesFn` might be `null` when all dependencies within
-  // a given defer block were eagerly references elsewhere in a file,
-  // thus no dynamic `import()`s were produced.
-  if (!dependenciesFn) {
-    tDetails.loadingPromise = Promise.resolve().then(() => {
-      tDetails.loadingState = DeferDependenciesLoadingState.COMPLETE;
-    });
-    return;
+  if (!shouldAttachTrigger(TriggerType.Hydrate, lView, tNode)) return;
+
+  const hydrateTriggers = getHydrateTriggers(getTView(), tNode);
+  hydrateTriggers.set(DeferBlockTrigger.Viewport, null);
+
+  if (typeof ngServerMode !== 'undefined' && ngServerMode) {
+    // We are on the server and SSR for defer blocks is enabled.
+    triggerDeferBlock(TriggerType.Hydrate, lView, tNode);
   }
-
-  // Start downloading of defer block dependencies.
-  tDetails.loadingPromise = Promise.allSettled(dependenciesFn()).then(results => {
-    let failed = false;
-    const directiveDefs: DirectiveDefList = [];
-    const pipeDefs: PipeDefList = [];
-
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const dependency = result.value;
-        const directiveDef = getComponentDef(dependency) || getDirectiveDef(dependency);
-        if (directiveDef) {
-          directiveDefs.push(directiveDef);
-        } else {
-          const pipeDef = getPipeDef(dependency);
-          if (pipeDef) {
-            pipeDefs.push(pipeDef);
-          }
-        }
-      } else {
-        failed = true;
-        break;
-      }
-    }
-
-    // Loading is completed, we no longer need this Promise.
-    tDetails.loadingPromise = null;
-
-    if (failed) {
-      tDetails.loadingState = DeferDependenciesLoadingState.FAILED;
-
-      if (tDetails.errorTmplIndex === null) {
-        const templateLocation = getTemplateLocationDetails(lView);
-        const error = new RuntimeError(
-            RuntimeErrorCode.DEFER_LOADING_FAILED,
-            ngDevMode &&
-                'Loading dependencies for `@defer` block failed, ' +
-                    `but no \`@error\` block was configured${templateLocation}. ` +
-                    'Consider using the `@error` block to render an error state.');
-        handleError(lView, error);
-      }
-    } else {
-      tDetails.loadingState = DeferDependenciesLoadingState.COMPLETE;
-
-      // Update directive and pipe registries to add newly downloaded dependencies.
-      const primaryBlockTView = primaryBlockTNode.tView!;
-      if (directiveDefs.length > 0) {
-        primaryBlockTView.directiveRegistry =
-            addDepsToRegistry<DirectiveDefList>(primaryBlockTView.directiveRegistry, directiveDefs);
-      }
-      if (pipeDefs.length > 0) {
-        primaryBlockTView.pipeRegistry =
-            addDepsToRegistry<PipeDefList>(primaryBlockTView.pipeRegistry, pipeDefs);
-      }
-    }
-  });
-}
-
-/** Utility function to render placeholder content (if present) */
-function renderPlaceholder(lView: LView, tNode: TNode) {
-  const lContainer = lView[tNode.index];
-  ngDevMode && assertLContainer(lContainer);
-
-  renderDeferBlockState(DeferBlockState.Placeholder, tNode, lContainer);
-}
-
-/**
- * Subscribes to the "loading" Promise and renders corresponding defer sub-block,
- * based on the loading results.
- *
- * @param lContainer Represents an instance of a defer block.
- * @param tNode Represents defer block info shared across all instances.
- */
-function renderDeferStateAfterResourceLoading(
-    tDetails: TDeferBlockDetails, tNode: TNode, lContainer: LContainer) {
-  ngDevMode &&
-      assertDefined(
-          tDetails.loadingPromise, 'Expected loading Promise to exist on this defer block');
-
-  tDetails.loadingPromise!.then(() => {
-    if (tDetails.loadingState === DeferDependenciesLoadingState.COMPLETE) {
-      ngDevMode && assertDeferredDependenciesLoaded(tDetails);
-
-      // Everything is loaded, show the primary block content
-      renderDeferBlockState(DeferBlockState.Complete, tNode, lContainer);
-
-    } else if (tDetails.loadingState === DeferDependenciesLoadingState.FAILED) {
-      renderDeferBlockState(DeferBlockState.Error, tNode, lContainer);
-    }
-  });
-}
-
-/**
- * Attempts to trigger loading of defer block dependencies.
- * If the block is already in a loading, completed or an error state -
- * no additional actions are taken.
- */
-function triggerDeferBlock(lView: LView, tNode: TNode) {
-  const tView = lView[TVIEW];
-  const lContainer = lView[tNode.index];
-  const injector = lView[INJECTOR]!;
-  ngDevMode && assertLContainer(lContainer);
-
-  if (!shouldTriggerDeferBlock(injector)) return;
-
-  const lDetails = getLDeferBlockDetails(lView, tNode);
-  const tDetails = getTDeferBlockDetails(tView, tNode);
-
-  // Defer block is triggered, cleanup all registered trigger functions.
-  invokeAllTriggerCleanupFns(lDetails);
-
-  switch (tDetails.loadingState) {
-    case DeferDependenciesLoadingState.NOT_STARTED:
-      renderDeferBlockState(DeferBlockState.Loading, tNode, lContainer);
-      triggerResourceLoading(tDetails, lView, tNode);
-
-      // The `loadingState` might have changed to "loading".
-      if ((tDetails.loadingState as DeferDependenciesLoadingState) ===
-          DeferDependenciesLoadingState.IN_PROGRESS) {
-        renderDeferStateAfterResourceLoading(tDetails, tNode, lContainer);
-      }
-      break;
-    case DeferDependenciesLoadingState.IN_PROGRESS:
-      renderDeferBlockState(DeferBlockState.Loading, tNode, lContainer);
-      renderDeferStateAfterResourceLoading(tDetails, tNode, lContainer);
-      break;
-    case DeferDependenciesLoadingState.COMPLETE:
-      ngDevMode && assertDeferredDependenciesLoaded(tDetails);
-      renderDeferBlockState(DeferBlockState.Complete, tNode, lContainer);
-      break;
-    case DeferDependenciesLoadingState.FAILED:
-      renderDeferBlockState(DeferBlockState.Error, tNode, lContainer);
-      break;
-    default:
-      if (ngDevMode) {
-        throwError('Unknown defer block state');
-      }
-  }
+  // The actual triggering of hydration on viewport happens in triggering.ts,
+  // since these instructions won't exist for dehydrated content.
 }

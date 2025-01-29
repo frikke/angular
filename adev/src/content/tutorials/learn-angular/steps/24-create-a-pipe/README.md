@@ -2,7 +2,7 @@
 
 You can create custom pipes in Angular to fit your data transformation needs.
 
-In this activity you will create a custom pipe and use it in your template.
+In this activity, you will create a custom pipe and use it in your template.
 
 <hr>
 
@@ -12,7 +12,6 @@ A pipe is a TypeScript class with a `@Pipe` decorator. Here's an example:
 import {Pipe, PipeTransform} from '@angular/core';
 
 @Pipe({
-  standaone: true,
   name: 'star',
 })
 export class StarPipe implements PipeTransform {
@@ -31,13 +30,12 @@ Alright, it's your turn to give this a try — you'll create the `ReversePipe`:
 
 <docs-workflow>
 
-<docs-step title="Create the `ReversePipe">
+<docs-step title="Create the `ReversePipe`">
 
 In `reverse.pipe.ts` add the `@Pipe` decorator to the `ReversePipe` class and provide the following configuration:
 
 ```ts
 @Pipe({
-    standaone: true,
     name: 'reverse'
 })
 ```
@@ -68,7 +66,7 @@ export class ReversePipe implements PipeTransform {
 <docs-step title="Use the `ReversePipe` in the template"></docs-step>
 With the pipe logic implemented, the final step is to use it in the template. In `app.component.ts` include the pipe in the template and add it to the component imports:
 
-<docs-code language="ts" highlight="[3,4]">
+<docs-code language="angular-ts" highlight="[3,4]">
 @Component({
     ...
     template: `Reverse Machine: {{ word | reverse }}`

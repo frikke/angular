@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 /**
@@ -75,18 +75,18 @@ export interface AnimationPlayer {
   reset(): void;
   /**
    * Sets the position of the animation.
-   * @param position A 0-based offset into the duration, in milliseconds.
+   * @param position A fractional value, representing the progress through the animation.
    */
   setPosition(position: number): void;
   /**
    * Reports the current position of the animation.
-   * @returns A 0-based offset into the duration, in milliseconds.
+   * @returns A fractional value, representing the progress through the animation.
    */
   getPosition(): number;
   /**
    * The parent of this player, if any.
    */
-  parentPlayer: AnimationPlayer|null;
+  parentPlayer: AnimationPlayer | null;
   /**
    * The total run time of the animation, in milliseconds.
    */
@@ -114,7 +114,6 @@ export interface AnimationPlayer {
  *
  * @see {@link animate}
  * @see {@link AnimationPlayer}
- * @see {@link ɵAnimationGroupPlayer AnimationGroupPlayer}
  *
  * @publicApi
  */
@@ -128,7 +127,7 @@ export class NoopAnimationPlayer implements AnimationPlayer {
   private _destroyed = false;
   private _finished = false;
   private _position = 0;
-  public parentPlayer: AnimationPlayer|null = null;
+  public parentPlayer: AnimationPlayer | null = null;
   public readonly totalTime: number;
   constructor(duration: number = 0, delay: number = 0) {
     this.totalTime = duration + delay;
@@ -136,7 +135,7 @@ export class NoopAnimationPlayer implements AnimationPlayer {
   private _onFinish() {
     if (!this._finished) {
       this._finished = true;
-      this._onDoneFns.forEach(fn => fn());
+      this._onDoneFns.forEach((fn) => fn());
       this._onDoneFns = [];
     }
   }
@@ -169,7 +168,7 @@ export class NoopAnimationPlayer implements AnimationPlayer {
   }
 
   private _onStart() {
-    this._onStartFns.forEach(fn => fn());
+    this._onStartFns.forEach((fn) => fn());
     this._onStartFns = [];
   }
 
@@ -185,7 +184,7 @@ export class NoopAnimationPlayer implements AnimationPlayer {
         this._onStart();
       }
       this.finish();
-      this._onDestroyFns.forEach(fn => fn());
+      this._onDestroyFns.forEach((fn) => fn());
       this._onDestroyFns = [];
     }
   }
@@ -205,7 +204,7 @@ export class NoopAnimationPlayer implements AnimationPlayer {
   /** @internal */
   triggerCallback(phaseName: string): void {
     const methods = phaseName == 'start' ? this._onStartFns : this._onDoneFns;
-    methods.forEach(fn => fn());
+    methods.forEach((fn) => fn());
     methods.length = 0;
   }
 }

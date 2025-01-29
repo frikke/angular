@@ -10,12 +10,16 @@ import {HeroService} from '../hero.service';
 @Component({
   selector: 'app-hero-detail',
   templateUrl: './hero-detail.component.html',
-  styleUrls: ['./hero-detail.component.css']
+  styleUrls: ['./hero-detail.component.css'],
+  standalone: false,
 })
 export class HeroDetailComponent {
   hero$!: Observable<Hero>;
 
-  constructor(private router: Router, private service: HeroService) {}
+  constructor(
+    private router: Router,
+    private service: HeroService,
+  ) {}
 
   // #docregion id-input
   @Input()

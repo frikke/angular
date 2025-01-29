@@ -14,6 +14,7 @@ import {
   PLATFORM_ID,
   computed,
   inject,
+  signal,
 } from '@angular/core';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {
@@ -27,12 +28,12 @@ import {
   getNavigationItemsTree,
   markExternalLinks,
   shouldReduceMotion,
-} from '@angular/docs-shared';
-import {distinctUntilChanged, filter, map, skip, startWith} from 'rxjs';
+} from '@angular/docs';
+import {distinctUntilChanged, filter, map, skip, startWith} from 'rxjs/operators';
 import {SUB_NAVIGATION_DATA} from '../../../sub-navigation-data';
 import {PagePrefix} from '../../enums/pages';
 import {ActivatedRouteSnapshot, NavigationEnd, Router, RouterStateSnapshot} from '@angular/router';
-import {NgFor, NgIf, isPlatformBrowser} from '@angular/common';
+import {isPlatformBrowser} from '@angular/common';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {PRIMARY_NAV_ID, SECONDARY_NAV_ID} from '../../constants/element-ids';
 
@@ -40,8 +41,7 @@ export const ANIMATION_DURATION = 500;
 
 @Component({
   selector: 'adev-secondary-navigation',
-  standalone: true,
-  imports: [NavigationList, NgIf, NgFor, ClickOutside],
+  imports: [NavigationList, ClickOutside],
   templateUrl: './secondary-navigation.component.html',
   styleUrls: ['./secondary-navigation.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,31 +62,30 @@ export class SecondaryNavigation implements OnInit {
   private readonly navigationState = inject(NavigationState);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
-  private readonly window = inject(WINDOW);
 
-  isSecondaryNavVisible = this.navigationState.isMobileNavVisible;
-  primaryActiveRouteItem = this.navigationState.primaryActiveRouteItem;
-  maxVisibleLevelsOnSecondaryNav = computed(() =>
+  readonly isSecondaryNavVisible = this.navigationState.isMobileNavVisible;
+  readonly primaryActiveRouteItem = this.navigationState.primaryActiveRouteItem;
+  readonly maxVisibleLevelsOnSecondaryNav = computed(() =>
     this.primaryActiveRouteItem() === PagePrefix.REFERENCE ? 1 : 2,
   );
-  navigationItemsSlides = this.navigationState.expandedItems;
+  readonly navigationItemsSlides = this.navigationState.expandedItems;
   navigationItems: NavigationItem[] | undefined;
 
   translateX = computed(() => {
     const level = this.navigationState.expandedItems()?.length ?? 0;
     return `translateX(${-level * 100}%)`;
   });
-  transition: string = '0ms';
+  transition = signal('0ms');
 
   readonly PRIMARY_NAV_ID = PRIMARY_NAV_ID;
   readonly SECONDARY_NAV_ID = SECONDARY_NAV_ID;
 
   private readonly routeMap: Record<string, NavigationItem[]> = {
     [PagePrefix.REFERENCE]: getNavigationItemsTree(SUB_NAVIGATION_DATA.reference, (tree) =>
-      markExternalLinks(tree, this.window.origin),
+      markExternalLinks(tree),
     ),
     [PagePrefix.DOCS]: getNavigationItemsTree(SUB_NAVIGATION_DATA.docs, (tree) =>
-      markExternalLinks(tree, this.window.origin),
+      markExternalLinks(tree),
     ),
   };
 
@@ -182,7 +181,7 @@ export class SecondaryNavigation implements OnInit {
       return;
     }
     setTimeout(() => {
-      this.transition = `${ANIMATION_DURATION}ms`;
+      this.transition.set(`${ANIMATION_DURATION}ms`);
     }, ANIMATION_DURATION);
   }
 

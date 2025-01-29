@@ -9,11 +9,13 @@ This table covers [Angular versions under active support](reference/releases#act
 
 | Angular            | Node.js                              | TypeScript     | RxJS               |
 | ------------------ | ------------------------------------ | -------------- | ------------------ |
-| 17.0.x             | ^18.13.0 \|\| ^20.9.0                | >=4.9.3 <5.3.0 | ^6.5.3 \|\| ^7.4.0 |
-| 16.1.x \|\| 16.2.x | ^16.14.0 \|\| ^18.10.0               | >=4.9.3 <5.2.0 | ^6.5.3 \|\| ^7.4.0 |
-| 16.0.x             | ^16.14.0 \|\| ^18.10.0               | >=4.9.3 <5.1.0 | ^6.5.3 \|\| ^7.4.0 |
-| 15.1.x \|\| 15.2.x | ^14.20.0 \|\| ^16.13.0 \|\| ^18.10.0 | >=4.8.2 <5.0.0 | ^6.5.3 \|\| ^7.4.0 |
-| 15.0.x             | ^14.20.0 \|\| ^16.13.0 \|\| ^18.10.0 | ~4.8.2         | ^6.5.3 \|\| ^7.4.0 |
+| 19.1.x             | ^18.19.1 \|\| ^20.11.1 \|\| ^22.0.0  | >=5.5.0 <5.8.0 | ^6.5.3 \|\| ^7.4.0 |
+| 19.0.x             | ^18.19.1 \|\| ^20.11.1 \|\| ^22.0.0  | >=5.5.0 <5.7.0 | ^6.5.3 \|\| ^7.4.0 |
+| 18.1.x \|\| 18.2.x | ^18.19.1 \|\| ^20.11.1 \|\| ^22.0.0  | >=5.4.0 <5.6.0 | ^6.5.3 \|\| ^7.4.0 |
+| 18.0.x             | ^18.19.1 \|\| ^20.11.1 \|\| ^22.0.0  | >=5.4.0 <5.5.0 | ^6.5.3 \|\| ^7.4.0 |
+| 17.3.x             | ^18.13.0 \|\| ^20.9.0                | >=5.2.0 <5.5.0 | ^6.5.3 \|\| ^7.4.0 |
+| 17.1.x \|\| 17.2.x | ^18.13.0 \|\| ^20.9.0                | >=5.2.0 <5.4.0 | ^6.5.3 \|\| ^7.4.0 |
+| 17.0.x             | ^18.13.0 \|\| ^20.9.0                | >=5.2.0 <5.3.0 | ^6.5.3 \|\| ^7.4.0 |
 
 ## Unsupported Angular versions
 
@@ -23,9 +25,13 @@ guarantees. It is listed here for historical reference.
 
 | Angular            | Node.js                              | TypeScript     | RxJS               |
 | ------------------ | ------------------------------------ | -------------- | ------------------ |
+| 16.1.x \|\| 16.2.x | ^16.14.0 \|\| ^18.10.0               | >=4.9.3 <5.2.0 | ^6.5.3 \|\| ^7.4.0 |
+| 16.0.x             | ^16.14.0 \|\| ^18.10.0               | >=4.9.3 <5.1.0 | ^6.5.3 \|\| ^7.4.0 |
+| 15.1.x \|\| 15.2.x | ^14.20.0 \|\| ^16.13.0 \|\| ^18.10.0 | >=4.8.2 <5.0.0 | ^6.5.3 \|\| ^7.4.0 |
+| 15.0.x             | ^14.20.0 \|\| ^16.13.0 \|\| ^18.10.0 | ~4.8.2         | ^6.5.3 \|\| ^7.4.0 |
 | 14.2.x \|\| 14.3.x | ^14.15.0 \|\| ^16.10.0               | >=4.6.2 <4.9.0 | ^6.5.3 \|\| ^7.4.0 |
 | 14.0.x \|\| 14.1.x | ^14.15.0 \|\| ^16.10.0               | >=4.6.2 <4.8.0 | ^6.5.3 \|\| ^7.4.0 |
-| 13.3.x             | ^12.20.0 \|\| ^14.15.0 \|\| ^16.10.0 | >=4.4.3 <4.7.0 | ^6.5.3 \|\| ^7.4.0 |
+| 13.3.x \|\| 13.4.x | ^12.20.0 \|\| ^14.15.0 \|\| ^16.10.0 | >=4.4.3 <4.7.0 | ^6.5.3 \|\| ^7.4.0 |
 | 13.1.x \|\| 13.2.x | ^12.20.0 \|\| ^14.15.0 \|\| ^16.10.0 | >=4.4.3 <4.6.0 | ^6.5.3 \|\| ^7.4.0 |
 | 13.0.x             | ^12.20.0 \|\| ^14.15.0 \|\| ^16.10.0 | ~4.4.3         | ^6.5.3 \|\| ^7.4.0 |
 | 12.2.x             | ^12.14.0 \|\| ^14.15.0               | >=4.2.3 <4.4.0 | ^6.5.3 \|\| ^7.0.0 |
@@ -118,24 +124,24 @@ If you are not using the CLI, add your polyfill scripts directly to the host web
 For example:
 
 <docs-code header="src/index.html" language="html">
-&lt;!-- pre-zone polyfills --&gt;
-&lt;script src="node_modules/core-js/client/shim.min.js"&gt;&lt;/script&gt;
-&lt;script>
+<!-- pre-zone polyfills -->
+<script src="node_modules/core-js/client/shim.min.js"></script>
+<script>
   /**
-   &ast; you can configure some zone flags which can disable zone interception for some
-   &ast; asynchronous activities to improve startup performance - use these options only
-   &ast; if you know what you are doing as it could result in hard to trace down bugs.
+   * you can configure some zone flags which can disable zone interception for some
+   * asynchronous activities to improve startup performance - use these options only
+   * if you know what you are doing as it could result in hard to trace down bugs.
    */
   // &lowbar;&lowbar;Zone_disable_requestAnimationFrame = true; // disable patch requestAnimationFrame
   // &lowbar;&lowbar;Zone_disable_on_property = true; // disable patch onProperty such as onclick
   // &lowbar;&lowbar;zone_symbol__UNPATCHED_EVENTS = ['scroll', 'mousemove']; // disable patch specified eventNames
   /*
-   &ast; in Edge developer tools, the addEventListener will also be wrapped by zone.js
-   &ast; with the following flag, it will bypass `zone.js` patch for Edge.
+   * in Edge developer tools, the addEventListener will also be wrapped by zone.js
+   * with the following flag, it will bypass `zone.js` patch for Edge.
    */
   // &lowbar;&lowbar;Zone_enable_cross_context_check = true;
-&lt;/script&gt;
-&lt;!-- zone.js required by Angular --&gt;
-&lt;script src="node_modules/zone.js/bundles/zone.umd.js"&gt;&lt;/script&gt;
-&lt;!-- application polyfills --&gt;
+</script>
+<!-- zone.js required by Angular -->
+<script src="node_modules/zone.js/bundles/zone.umd.js"></script>
+<!-- application polyfills -->
 </docs-code>

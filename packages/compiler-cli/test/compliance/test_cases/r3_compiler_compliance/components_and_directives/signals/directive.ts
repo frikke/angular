@@ -1,7 +1,9 @@
 import {Directive} from '@angular/core';
 
 @Directive({
-  signals: true,
+    // @ts-ignore
+    signals: true,
+    standalone: false
 })
 export class SignalDir {
 }

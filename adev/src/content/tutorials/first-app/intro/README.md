@@ -32,7 +32,7 @@ Note: Look for alerts like this one, which call out steps that may only be for y
 The lessons in this tutorial create an Angular app that lists houses for rent and shows the details of individual houses.
 This app uses features that are common to many Angular apps.
 
-<img alt="Output of heroes dashboard" src="assets/content/images/tutorials/first-app/homes-app-landing-page.png">
+<img alt="Output of homes landing page" src="assets/images/tutorials/first-app/homes-app-landing-page.png">
 
 ## Local development environment
 
@@ -66,6 +66,7 @@ You are free to use any tool you prefer to build apps with Angular. We recommend
 
 1. [Visual Studio Code](https://code.visualstudio.com/)
 2. As an optional, but recommended step you can further improve your developer experience by installing the [Angular Language Service](https://marketplace.visualstudio.com/items?itemName=Angular.ng-template)
+3. [WebStorm](https://www.jetbrains.com/webstorm/)
 </docs-step>
 
 </docs-workflow>

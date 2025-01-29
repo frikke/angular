@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
-import { Hero } from '../shared/hero.model';
+import {Hero} from '../shared/hero.model';
 
 @Component({
   selector: 'toh-hero-list',
@@ -12,7 +12,8 @@ import { Hero } from '../shared/hero.model';
       Total powers: {{totalPowers}}<br>
       Average power: {{avgPower}}
     </section>
-  `
+  `,
+  standalone: false,
 })
 export class HeroListComponent {
   heroes: Hero[] = [];

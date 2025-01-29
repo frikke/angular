@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {CommonModule, JsonPipe} from '@angular/common';
@@ -23,14 +23,14 @@ describe('JsonPipe', () => {
 
   beforeEach(() => {
     inceptionObj = {dream: {dream: {dream: 'Limbo'}}};
-    inceptionObjString = '{\n' +
-        '  "dream": {\n' +
-        '    "dream": {\n' +
-        '      "dream": "Limbo"\n' +
-        '    }\n' +
-        '  }\n' +
-        '}';
-
+    inceptionObjString =
+      '{\n' +
+      '  "dream": {\n' +
+      '    "dream": {\n' +
+      '      "dream": "Limbo"\n' +
+      '    }\n' +
+      '  }\n' +
+      '}';
 
     pipe = new JsonPipe();
   });
@@ -54,7 +54,11 @@ describe('JsonPipe', () => {
   });
 
   describe('integration', () => {
-    @Component({selector: 'test-comp', template: '{{data | json}}'})
+    @Component({
+      selector: 'test-comp',
+      template: '{{data | json}}',
+      standalone: false,
+    })
     class TestComp {
       data: any;
     }
@@ -64,16 +68,16 @@ describe('JsonPipe', () => {
     });
 
     it('should work with mutable objects', waitForAsync(() => {
-         const fixture = TestBed.createComponent(TestComp);
-         const mutable: number[] = [1];
-         fixture.componentInstance.data = mutable;
-         fixture.detectChanges();
-         expect(fixture.nativeElement).toHaveText('[\n  1\n]');
+      const fixture = TestBed.createComponent(TestComp);
+      const mutable: number[] = [1];
+      fixture.componentInstance.data = mutable;
+      fixture.detectChanges();
+      expect(fixture.nativeElement).toHaveText('[\n  1\n]');
 
-         mutable.push(2);
-         fixture.detectChanges();
-         expect(fixture.nativeElement).toHaveText('[\n  1,\n  2\n]');
-       }));
+      mutable.push(2);
+      fixture.detectChanges();
+      expect(fixture.nativeElement).toHaveText('[\n  1,\n  2\n]');
+    }));
   });
 
   it('should be available as a standalone pipe', () => {
@@ -81,7 +85,6 @@ describe('JsonPipe', () => {
       selector: 'test-component',
       imports: [JsonPipe],
       template: '{{ value | json }}',
-      standalone: true,
     })
     class TestComponent {
       value = {'a': 1};

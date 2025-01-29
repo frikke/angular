@@ -3,13 +3,17 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 /** Message that can be sent to the daemon to start a given test. */
 export class StartTestMessage {
   readonly type = 'start-test';
-  constructor(public url: string, public browserId: string, public testDescription: string) {}
+  constructor(
+    public url: string,
+    public browserId: string,
+    public testDescription: string,
+  ) {}
 }
 
 /** Message that can be sent to the daemon if a test completed. */
@@ -29,7 +33,7 @@ export class InternalErrorMessage {
 }
 
 /** Type of messages the background service can receive. */
-export type BackgroundServiceReceiveMessages = StartTestMessage|EndTestMessage;
+export type BackgroundServiceReceiveMessages = StartTestMessage | EndTestMessage;
 
 /** Type of messages the background services can send to clients. */
-export type BackgroundServiceSendMessages = NoAvailableBrowserMessage|InternalErrorMessage;
+export type BackgroundServiceSendMessages = NoAvailableBrowserMessage | InternalErrorMessage;

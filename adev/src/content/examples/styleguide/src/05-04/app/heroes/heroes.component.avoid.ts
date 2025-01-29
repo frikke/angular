@@ -1,14 +1,13 @@
-import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Component} from '@angular/core';
+import {Observable} from 'rxjs';
 
-import { Hero, HeroService } from './shared';
-import { AsyncPipe, NgFor, NgIf, UpperCasePipe } from '@angular/common';
+import {Hero, HeroService} from './shared';
+import {AsyncPipe, NgFor, NgIf, UpperCasePipe} from '@angular/common';
 
 // #docregion example
 /* avoid */
 
 @Component({
-  standalone: true,
   selector: 'toh-heroes',
   template: `
     <div>
@@ -27,7 +26,8 @@ import { AsyncPipe, NgFor, NgIf, UpperCasePipe } from '@angular/common';
       }
     </div>
   `,
-  styles: [`
+  styles: [
+    `
     .heroes {
       margin: 0 0 2em 0;
       list-style-type: none;
@@ -58,8 +58,9 @@ import { AsyncPipe, NgFor, NgIf, UpperCasePipe } from '@angular/common';
       margin-right: .8em;
       border-radius: 4px 0 0 4px;
     }
-  `],
-  imports: [NgFor, NgIf, AsyncPipe, UpperCasePipe]
+  `,
+  ],
+  imports: [NgFor, NgIf, AsyncPipe, UpperCasePipe],
 })
 export class HeroesComponent {
   heroes: Observable<Hero[]>;

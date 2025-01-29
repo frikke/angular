@@ -1,9 +1,10 @@
 // #docregion
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'app-manage-crises',
   templateUrl: './manage-crises.component.html',
-  styleUrls: ['./manage-crises.component.css']
+  styleUrls: ['./manage-crises.component.css'],
+  standalone: false,
 })
-export class ManageCrisesComponent { }
+export class ManageCrisesComponent {}

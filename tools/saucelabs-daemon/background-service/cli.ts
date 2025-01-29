@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {customLaunchers} from '../../../browser-providers.conf';
@@ -43,13 +43,13 @@ if (!parallelExecutions) {
 
 // Start the daemon and launch the given browser
 const daemon = new SaucelabsDaemon(
-    username,
-    accessKey,
-    process.env['CIRCLE_BUILD_NUM']!,
-    Object.values(customLaunchers) as Browser[],
-    parallelExecutions,
-    sauceConnect,
-    {tunnelIdentifier},
+  username,
+  accessKey,
+  process.env['CIRCLE_BUILD_NUM']!,
+  Object.values(customLaunchers) as Browser[],
+  parallelExecutions,
+  sauceConnect,
+  {tunnelIdentifier},
 );
 
 if (args.includes('--connect')) {

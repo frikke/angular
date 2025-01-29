@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {ChangeDetectorRef, Component, inject, Pipe, PipeTransform} from '@angular/core';
@@ -27,7 +27,7 @@ describe('control flow - switch', () => {
             @case (1) {case 1}
             @default {default}
           }
-        `
+        `,
     })
     class TestComponent {
       case = 0;
@@ -57,7 +57,7 @@ describe('control flow - switch', () => {
             @case (2) {case 2}
             @default {default}
           }
-        `
+        `,
     })
     class TestComponent {
       case = 0;
@@ -87,7 +87,7 @@ describe('control flow - switch', () => {
             @case (2 | multiply:2) {case 4}
             @default {default}
           }
-        `
+        `,
     })
     class TestComponent {
       case = 0;
@@ -136,32 +136,93 @@ describe('control flow - switch', () => {
     expect(fixture.nativeElement.textContent).toBe('One');
   });
 
-  it('should project an @switch block into the catch-all slot', () => {
+  it('should project @switch cases into appropriate slots when selectors are used for all cases', () => {
     @Component({
       standalone: true,
       selector: 'test',
-      template: 'Main: <ng-content/> Slot: <ng-content select="[foo]"/>',
+      template:
+        'case 1: (<ng-content select="[case_1]"/>), case 2: (<ng-content select="[case_2]"/>), case 3: (<ng-content select="[case_3]"/>)',
     })
-    class TestComponent {
-    }
+    class TestComponent {}
 
     @Component({
       standalone: true,
       imports: [TestComponent],
       template: `
-      <test>Before @switch (1) {
-        @case (1) {
-          <span foo>foo</span>
-        }
-      } After</test>
-    `
+            <test>
+              @switch (value) {
+                @case (1) {
+                  <span case_1>value 1</span>
+                }
+                @case (2) {
+                  <span case_2>value 2</span>
+                }
+                @case (3) {
+                  <span case_3>value 3</span>
+                }
+              }
+            </test>
+          `,
     })
     class App {
+      value = 1;
     }
 
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toBe('case 1: (value 1), case 2: (), case 3: ()');
 
-    expect(fixture.nativeElement.textContent).toBe('Main: Before foo After Slot: ');
+    fixture.componentInstance.value = 2;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toBe('case 1: (), case 2: (value 2), case 3: ()');
+
+    fixture.componentInstance.value = 3;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toBe('case 1: (), case 2: (), case 3: (value 3)');
+  });
+
+  it('should project @switch cases into appropriate slots when selectors are used for some cases', () => {
+    @Component({
+      standalone: true,
+      selector: 'test',
+      template:
+        'case 1: (<ng-content select="[case_1]"/>), case 2: (<ng-content />), case 3: (<ng-content select="[case_3]"/>)',
+    })
+    class TestComponent {}
+
+    @Component({
+      standalone: true,
+      imports: [TestComponent],
+      template: `
+          <test>
+            @switch (value) {
+              @case (1) {
+                <span case_1>value 1</span>
+              }
+              @case (2) {
+                <span>value 2</span>
+              }
+              @case (3) {
+                <span case_3>value 3</span>
+              }
+            }
+          </test>
+        `,
+    })
+    class App {
+      value = 1;
+    }
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toBe('case 1: (value 1), case 2: (), case 3: ()');
+
+    fixture.componentInstance.value = 2;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toBe('case 1: (), case 2: (value 2), case 3: ()');
+
+    fixture.componentInstance.value = 3;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toBe('case 1: (), case 2: (), case 3: (value 3)');
   });
 });

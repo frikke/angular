@@ -7,7 +7,7 @@ As a design system, this page contains visual and Markdown authoring guidance fo
 * Custom Angular docs elements: [`docs-card`](#cards), [`docs-callout`](#callouts), [`docs-pill`](#pills), and [`docs-steps`](#workflow)
 * Custom text elements: [alerts](#alerts)
 * Code examples: [`docs-code`](#code)
-* Built-in Markdown styled elements: links, lists, [headers](#headers), [horizonal lines](#horizontal-line-divider), [tables](#tables)
+* Built-in Markdown styled elements: links, lists, [headers](#headers), [horizontal lines](#horizontal-line-divider), [tables](#tables)
 * and more!
 
 Get ready to:
@@ -66,11 +66,11 @@ Get ready to:
 
 ### `<docs-callout>` Attributes
 
-| Attributes                                     | Details                                                   |
-|:---                                            |:---                                                       |
-| `title`                                        | Callout title                                             |
-| card body contents                             | Anything between `<docs-callout>` and `</docs-callout>`   |
-| `helpful` (default) | `critical` | `important` | (Optional) Adds styling and icons based on severity level |
+| Attributes                                       | Details                                                   |
+|:---                                              |:---                                                       |
+| `title`                                          | Callout title                                             |
+| card body contents                               | Anything between `<docs-callout>` and `</docs-callout>`   |
+| `helpful` (default) \| `critical` \| `important` | (Optional) Adds styling and icons based on severity level |
 
 ## Pills
 

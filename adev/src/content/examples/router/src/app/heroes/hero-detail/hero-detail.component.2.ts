@@ -1,24 +1,25 @@
 // Snapshot version
 // #docregion
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Observable} from 'rxjs';
 
-import { HeroService } from '../hero.service';
-import { Hero } from '../hero';
+import {HeroService} from '../hero.service';
+import {Hero} from '../hero';
 
 @Component({
   selector: 'app-hero-detail',
   templateUrl: './hero-detail.component.html',
-  styleUrls: ['./hero-detail.component.css']
+  styleUrls: ['./hero-detail.component.css'],
+  standalone: false,
 })
-export class HeroDetailComponent implements OnInit  {
+export class HeroDetailComponent implements OnInit {
   hero$!: Observable<Hero>;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private service: HeroService
+    private service: HeroService,
   ) {}
 
   // #docregion snapshot

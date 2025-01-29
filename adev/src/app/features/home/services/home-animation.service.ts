@@ -9,10 +9,11 @@
 import {DOCUMENT} from '@angular/common';
 import {DestroyRef, Injectable, inject} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {RESIZE_EVENT_DELAY, WEBGL_LOADED_DELAY, WINDOW} from '@angular/docs-shared';
+import {RESIZE_EVENT_DELAY, WEBGL_LOADED_DELAY, WINDOW} from '@angular/docs';
 import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
-import {debounceTime, fromEvent} from 'rxjs';
+import {fromEvent} from 'rxjs';
+import {debounceTime} from 'rxjs/operators';
 import {ThemeManager} from '../../../core/services/theme-manager.service';
 import {Canvas} from '../components/canvas';
 import {View} from '../components/views/view';
@@ -490,8 +491,7 @@ export class HomeAnimation {
 
     this.canvas.update(time, deltaTime, frame, this.progress);
     // TODO: add support for class fields arrow function
-    // Using disable-next-line to avoid tslint errors - An arrow function is required for binding to the listener
-    // tslint:disable-next-line:semicolon
+    // An arrow function is required for binding to the listener
   };
 
   /**

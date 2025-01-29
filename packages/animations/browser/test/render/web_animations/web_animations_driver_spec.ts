@@ -3,11 +3,10 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 import {WebAnimationsDriver} from '../../../src/render/web_animations/web_animations_driver';
 import {WebAnimationsPlayer} from '../../../src/render/web_animations/web_animations_player';
-
 
 describe('WebAnimationsDriver', () => {
   if (isNode) {
@@ -26,19 +25,17 @@ describe('WebAnimationsDriver', () => {
   });
 
   describe('when animation is inside a shadow DOM', () => {
-    it('should consider an element inside the shadow DOM to be contained by the document body',
-       (() => {
-         const hostElement = createElement();
-         const shadowRoot = hostElement.attachShadow({mode: 'open'});
-         const elementToAnimate = createElement();
-         shadowRoot.appendChild(elementToAnimate);
-         document.body.appendChild(hostElement);
-         const animator = new WebAnimationsDriver();
-         expect(animator.containsElement(document.body, elementToAnimate)).toBeTrue();
-       }));
+    it('should consider an element inside the shadow DOM to be contained by the document body', () => {
+      const hostElement = createElement();
+      const shadowRoot = hostElement.attachShadow({mode: 'open'});
+      const elementToAnimate = createElement();
+      shadowRoot.appendChild(elementToAnimate);
+      document.body.appendChild(hostElement);
+      const animator = new WebAnimationsDriver();
+      expect(animator.containsElement(document.body, elementToAnimate)).toBeTrue();
+    });
   });
 });
-
 
 function makeDriver() {
   return new WebAnimationsDriver();

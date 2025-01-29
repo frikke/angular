@@ -7,11 +7,10 @@ import {ReactiveFormsModule} from '@angular/forms';
   template: `
     <form [formGroup]="profileForm">
       <input type="text" formControlName="name" name="name" />
-      <input type="email" formControlName="email" name="password" />
+      <input type="email" formControlName="email" name="email" />
       <button type="submit">Submit</button>
     </form>
   `,
-  standalone: true,
   imports: [ReactiveFormsModule],
 })
 export class AppComponent {

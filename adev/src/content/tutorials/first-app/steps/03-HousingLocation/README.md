@@ -47,30 +47,30 @@ In the **Edit** pane of your IDE:
 1. Open `home.component.ts` in the editor.
 1. In `home.component.ts`, import `HousingLocationComponent` by adding this line to the file level imports.
 
-    <docs-code header="Import HousingLocationComponent in src/app/home/home.component.ts" path="first-app/steps/04-interfaces/src/app/home/home.component.ts" visibleLines="[3]"/>
+    <docs-code header="Import HousingLocationComponent in src/app/home/home.component.ts" path="adev/src/content/tutorials/first-app/steps/04-interfaces/src/app/home/home.component.ts" visibleLines="[3]"/>
 
 1. Next update the `imports` property of the `@Component` metadata by adding `HousingLocationComponent` to the array.
 
-    <docs-code header="Add HousingLocationComponent to imports array in src/app/home/home.component.ts" path="first-app/steps/04-interfaces/src/app/home/home.component.ts" visibleLines="[7,10]"/>
+    <docs-code header="Add HousingLocationComponent to imports array in src/app/home/home.component.ts" path="adev/src/content/tutorials/first-app/steps/04-interfaces/src/app/home/home.component.ts" visibleLines="[7]"/>
 
 1. Now the component is ready for use in the template for the `HomeComponent`. Update the `template` property of the `@Component` metadata to include a reference to the `<app-housing-location>` tag.
 
-    <docs-code header="Add housing location to the component template in src/app/home/home.component.ts" path="first-app/steps/04-interfaces/src/app/home/home.component.ts" visibleLines="[11,21]"/>
+    <docs-code header="Add housing location to the component template in src/app/home/home.component.ts" path="adev/src/content/tutorials/first-app/steps/04-interfaces/src/app/home/home.component.ts" visibleLines="[8,18]"/>
 
 </docs-step>
 
 <docs-step title="Add the styles for the component">
 In this step, you will copy over the pre-written styles for the `HousingLocationComponent` to your app so that the app renders properly.
 
-1. Open `src/app/housing-location/housing-location.css`, and paste the styles below into the file:
+1. Open `src/app/housing-location/housing-location.component.css`, and paste the styles below into the file:
 
     Note: In the browser, these can go in `src/app/housing-location/housing-location.component.ts` in the `styles` array.
 
-    <docs-code header="Add CSS styles to housing location to the component in src/app/housing-location/housing-location.component.css" path="first-app/steps/04-interfaces/src/app/housing-location/housing-location.component.css"/>
+    <docs-code header="Add CSS styles to housing location to the component in src/app/housing-location/housing-location.component.css" path="adev/src/content/tutorials/first-app/steps/04-interfaces/src/app/housing-location/housing-location.component.css"/>
 
 1. Save your code, return to the browser and confirm that the app builds without error. You should find the message "housing-location works!" rendered to the screen.Correct any errors before you continue to the next step.
 
-    <img alt="browser frame of homes-app displaying logo, filter text input box and search button and the message 'housing-location works!" src="assets/content/images/tutorials/first-app/homes-app-lesson-03-step-2.png">
+    <img alt="browser frame of homes-app displaying logo, filter text input box and search button and the message 'housing-location works!" src="assets/images/tutorials/first-app/homes-app-lesson-03-step-2.png">
 
 </docs-step>
 

@@ -3,17 +3,31 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {retrieveHydrationInfo} from '../../hydration/utils';
-import {assertEqual} from '../../util/assert';
+import {assertEqual, assertNotReactive} from '../../util/assert';
 import {RenderFlags} from '../interfaces/definition';
-import {CONTEXT, FLAGS, HOST, HYDRATION, INJECTOR, LView, LViewFlags, TVIEW, TView} from '../interfaces/view';
+import {
+  CONTEXT,
+  FLAGS,
+  HOST,
+  HYDRATION,
+  INJECTOR,
+  LView,
+  LViewFlags,
+  QUERIES,
+  TVIEW,
+  TView,
+} from '../interfaces/view';
+import {profiler} from '../profiler';
+import {ProfilerEvent} from '../profiler_types';
+import {executeViewQueryFn, refreshContentQueries} from '../queries/query_execution';
 import {enterView, leaveView} from '../state';
 import {getComponentLViewByIndex, isCreationMode} from '../util/view_utils';
 
-import {executeTemplate, executeViewQueryFn, refreshContentQueries} from './shared';
+import {executeTemplate} from './shared';
 
 export function renderComponent(hostLView: LView, componentHostIdx: number) {
   ngDevMode && assertEqual(isCreationMode(hostLView), true, 'Should be run in creation mode');
@@ -24,10 +38,14 @@ export function renderComponent(hostLView: LView, componentHostIdx: number) {
   const hostRNode = componentView[HOST];
   // Populate an LView with hydration info retrieved from the DOM via TransferState.
   if (hostRNode !== null && componentView[HYDRATION] === null) {
-    componentView[HYDRATION] = retrieveHydrationInfo(hostRNode, componentView[INJECTOR]!);
+    componentView[HYDRATION] = retrieveHydrationInfo(hostRNode, componentView[INJECTOR]);
   }
 
+  profiler(ProfilerEvent.ComponentStart);
+
   renderView(componentTView, componentView, componentView[CONTEXT]);
+
+  profiler(ProfilerEvent.ComponentEnd, componentView[CONTEXT] as any as {});
 }
 
 /**
@@ -37,7 +55,7 @@ export function renderComponent(hostLView: LView, componentHostIdx: number) {
  * will be skipped. However, consider this case of two components side-by-side:
  *
  * App template:
- * ```
+ * ```html
  * <comp></comp>
  * <comp></comp>
  * ```
@@ -72,6 +90,7 @@ export function syncViewWithBlueprint(tView: TView, lView: LView) {
  */
 export function renderView<T>(tView: TView, lView: LView<T>, context: T): void {
   ngDevMode && assertEqual(isCreationMode(lView), true, 'Should be run in creation mode');
+  ngDevMode && assertNotReactive(renderView.name);
   enterView(lView);
   try {
     const viewQuery = tView.viewQuery;
@@ -95,6 +114,10 @@ export function renderView<T>(tView: TView, lView: LView<T>, context: T): void {
       tView.firstCreatePass = false;
     }
 
+    // Mark all queries active in this view as dirty. This is necessary for signal-based queries to
+    // have a clear marking point where we can read query results atomically (for a given view).
+    lView[QUERIES]?.finishViewCreation(tView);
+
     // We resolve content queries specifically marked as `static` in creation mode. Dynamic
     // content queries are resolved during change detection (i.e. update mode), after embedded
     // views are refreshed (see block above).
@@ -114,7 +137,6 @@ export function renderView<T>(tView: TView, lView: LView<T>, context: T): void {
     if (components !== null) {
       renderChildComponents(lView, components);
     }
-
   } catch (error) {
     // If we didn't manage to get past the first template pass due to
     // an error, mark the view as corrupted so we can try to recover.

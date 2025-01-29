@@ -1,15 +1,14 @@
 // #docregion
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
-import { Hero } from '../shared/hero.model';
-import { NgFor } from '@angular/common';
-import { HeroComponent } from '../hero/hero.component';
+import {Hero} from '../shared/hero.model';
+import {NgFor} from '@angular/common';
+import {HeroComponent} from '../hero/hero.component';
 
 // #docregion example
 /* avoid */
 
 @Component({
-  standalone: true,
   selector: 'toh-hero-list',
   template: `
     <section>
@@ -21,7 +20,7 @@ import { HeroComponent } from '../hero/hero.component';
       Average power: {{totalPowers / heroes.length}}
     </section>
   `,
-  imports: [NgFor, HeroComponent]
+  imports: [NgFor, HeroComponent],
 })
 export class HeroListComponent {
   heroes: Hero[] = [];

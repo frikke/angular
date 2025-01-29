@@ -33,7 +33,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Acme Fresh Start Housing",
                     "city": "Chicago",
                     "state": "IL",
-                    "photo": "${this.baseUrl}/bernard-hermant-CLKGGwIBTaY-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/bernard-hermant-CLKGGwIBTaY-unsplash.jpg",
                     "availableUnits": 4,
                     "wifi": true,
                     "laundry": true
@@ -43,7 +43,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "A113 Transitional Housing",
                     "city": "Santa Monica",
                     "state": "CA",
-                    "photo": "${this.baseUrl}/brandon-griggs-wR11KBaB86U-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/brandon-griggs-wR11KBaB86U-unsplash.jpg",
                     "availableUnits": 0,
                     "wifi": false,
                     "laundry": true
@@ -53,7 +53,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Warm Beds Housing Support",
                     "city": "Juneau",
                     "state": "AK",
-                    "photo": "${this.baseUrl}/i-do-nothing-but-love-lAyXdl1-Wmc-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/i-do-nothing-but-love-lAyXdl1-Wmc-unsplash.jpg",
                     "availableUnits": 1,
                     "wifi": false,
                     "laundry": false
@@ -63,7 +63,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Homesteady Housing",
                     "city": "Chicago",
                     "state": "IL",
-                    "photo": "${this.baseUrl}/ian-macdonald-W8z6aiwfi1E-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/ian-macdonald-W8z6aiwfi1E-unsplash.jpg",
                     "availableUnits": 1,
                     "wifi": true,
                     "laundry": false
@@ -73,7 +73,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Happy Homes Group",
                     "city": "Gary",
                     "state": "IN",
-                    "photo": "${this.baseUrl}/krzysztof-hepner-978RAXoXnH4-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/krzysztof-hepner-978RAXoXnH4-unsplash.jpg",
                     "availableUnits": 1,
                     "wifi": true,
                     "laundry": false
@@ -83,7 +83,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Hopeful Apartment Group",
                     "city": "Oakland",
                     "state": "CA",
-                    "photo": "${this.baseUrl}/r-architecture-JvQ0Q5IkeMM-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/r-architecture-JvQ0Q5IkeMM-unsplash.jpg",
                     "availableUnits": 2,
                     "wifi": true,
                     "laundry": true
@@ -93,7 +93,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Seriously Safe Towns",
                     "city": "Oakland",
                     "state": "CA",
-                    "photo": "${this.baseUrl}/phil-hearing-IYfp2Ixe9nM-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/phil-hearing-IYfp2Ixe9nM-unsplash.jpg",
                     "availableUnits": 5,
                     "wifi": true,
                     "laundry": true
@@ -103,7 +103,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Hopeful Housing Solutions",
                     "city": "Oakland",
                     "state": "CA",
-                    "photo": "${this.baseUrl}/r-architecture-GGupkreKwxA-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/r-architecture-GGupkreKwxA-unsplash.jpg",
                     "availableUnits": 2,
                     "wifi": true,
                     "laundry": true
@@ -113,7 +113,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Seriously Safe Towns",
                     "city": "Oakland",
                     "state": "CA",
-                    "photo": "${this.baseUrl}/saru-robert-9rP3mxf8qWI-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/saru-robert-9rP3mxf8qWI-unsplash.jpg",
                     "availableUnits": 10,
                     "wifi": false,
                     "laundry": false
@@ -123,7 +123,7 @@ JSON Server is an open source tool used to create mock REST APIs. You'll use it 
                     "name": "Capital Safe Towns",
                     "city": "Portland",
                     "state": "OR",
-                    "photo": "${this.baseUrl}/webaliser-_TPTXZd9mOo-unsplash.jpg",
+                    "photo": "https://angular.dev/assets/images/tutorials/common/webaliser-_TPTXZd9mOo-unsplash.jpg",
                     "availableUnits": 6,
                     "wifi": true,
                     "laundry": true
@@ -154,7 +154,7 @@ The data source has been configured, the next step is to update your web app to 
 
     1. Add a string property called `url` and set its value to `'http://localhost:3000/locations'`
 
-        <docs-code anguage="javascript">
+        <docs-code language="javascript">
         url = 'http://localhost:3000/locations';
         </docs-code>
 
@@ -162,7 +162,7 @@ The data source has been configured, the next step is to update your web app to 
 
     1. Update the `getAllHousingLocations` function to make a call to the web server you configured.
 
-        <docs-code header="" path="first-app/steps/14-http/src-final/app/housing.service.ts" visibleLines="[12,14]"/>
+        <docs-code header="" path="adev/src/content/tutorials/first-app/steps/14-http/src-final/app/housing.service.ts" visibleLines="[10,13]"/>
 
         The code now uses asynchronous code to make a **GET** request over HTTP.
 
@@ -170,11 +170,11 @@ The data source has been configured, the next step is to update your web app to 
 
     1. Update the `getHousingLocationsById` function to make a call to the web server you configured.
 
-        <docs-code header="" path="first-app/steps/14-http/src-final/app/housing.service.ts" visibleLines="[16,19]"/>
+        <docs-code header="" path="adev/src/content/tutorials/first-app/steps/14-http/src-final/app/housing.service.ts" visibleLines="[15,18]"/>
 
     1. Once all the updates are complete, your updated service should match the following code.
 
-        <docs-code header="Final version of housing.service.ts" path="first-app/steps/14-http/src-final/app/housing.service.ts"/>
+        <docs-code header="Final version of housing.service.ts" path="adev/src/content/tutorials/first-app/steps/14-http/src-final/app/housing.service.ts" visibleLines="[1,24]" />
 
 </docs-step>
 
@@ -183,11 +183,11 @@ The server is now reading data from the HTTP request but the components that rel
 
 1. In `src/app/home/home.component.ts`, update the `constructor` to use the new asynchronous version of the `getAllHousingLocations` method.
 
-    <docs-code header="" path="first-app/steps/14-http/src-final/app/home/home.component.ts" visibleLines="[36,41]"/>
+    <docs-code header="" path="adev/src/content/tutorials/first-app/steps/14-http/src-final/app/home/home.component.ts" visibleLines="[32,37]"/>
 
 1. In `src/app/details/details.component.ts`, update the `constructor` to use the new asynchronous version of the `getHousingLocationById` method.
 
-    <docs-code header="" path="first-app/steps/14-http/src-final/app/details/details.component.ts" visibleLines="[61,66]"/>
+    <docs-code header="" path="adev/src/content/tutorials/first-app/steps/14-http/src-final/app/details/details.component.ts" visibleLines="[61,66]"/>
 
 1. Save your code.
 
@@ -196,8 +196,10 @@ The server is now reading data from the HTTP request but the components that rel
 
 </docs-workflow>
 
+Note: This lesson relies on the `fetch` browser API. For the support of interceptors, please refer to the [Http Client documentation](/guide/http)
+
 Summary: In this lesson, you updated your app to use a local web server (`json-server`), and use asynchronous service methods to retrieve data.
 
 Congratulations! You've successfully completed this tutorial and are ready to continue your journey with building even more complex Angular Apps.
 
-If you would like to learn more, please consider completing some of Angular's other developer [tutorials](tutorial) and [guides](overview).
+If you would like to learn more, please consider completing some of Angular's other developer [tutorials](tutorials) and [guides](overview).

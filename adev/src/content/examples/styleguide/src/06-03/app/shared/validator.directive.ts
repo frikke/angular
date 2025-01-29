@@ -1,9 +1,8 @@
 // #docregion
-import { Directive, HostBinding, HostListener } from '@angular/core';
+import {Directive, HostBinding, HostListener} from '@angular/core';
 
 @Directive({
-  standalone: true,
-  selector: '[tohValidator]'
+  selector: '[tohValidator]',
 })
 export class ValidatorDirective {
   @HostBinding('attr.role') role = 'button';

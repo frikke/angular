@@ -1,22 +1,10 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter
-} from '@angular/core';
-import {
-  trigger,
-  state,
-  style,
-  animate,
-  transition
-} from '@angular/animations';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {trigger, state, style, animate, transition} from '@angular/animations';
 
-import { Hero } from './hero';
-import { NgFor } from '@angular/common';
+import {Hero} from './hero';
+import {NgFor} from '@angular/common';
 
 @Component({
-  standalone: true,
   selector: 'app-hero-list-enter-leave',
   template: `
     <ul class="heroes">
@@ -35,16 +23,11 @@ import { NgFor } from '@angular/common';
   // #docregion animationdef
   animations: [
     trigger('flyInOut', [
-      state('in', style({ transform: 'translateX(0)' })),
-      transition('void => *', [
-        style({ transform: 'translateX(-100%)' }),
-        animate(100)
-      ]),
-      transition('* => void', [
-        animate(100, style({ transform: 'translateX(100%)' }))
-      ])
-    ])
-  ]
+      state('in', style({transform: 'translateX(0)'})),
+      transition('void => *', [style({transform: 'translateX(-100%)'}), animate(100)]),
+      transition('* => void', [animate(100, style({transform: 'translateX(100%)'}))]),
+    ]),
+  ],
   // #enddocregion animationdef
 })
 export class HeroListEnterLeaveComponent {

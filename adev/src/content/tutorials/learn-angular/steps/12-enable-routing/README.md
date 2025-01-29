@@ -8,7 +8,7 @@ In this activity, you'll learn how to setup and configure your app to use Angula
 
 <docs-workflow>
 
-<docs-step title="Create an app.route.ts file">
+<docs-step title="Create an app.routes.ts file">
 
 Inside `app.routes.ts`, make the following changes:
 
@@ -29,7 +29,7 @@ In `app.config.ts`, configure the app to Angular Router with the following steps
 
 1. Import the `provideRouter` function from `@angular/router`.
 1. Import `routes` from the `./app.routes.ts`.
-1. Call the `providerRouter` function with `routes` passed in as an argument in the `providers` array.
+1. Call the `provideRouter` function with `routes` passed in as an argument in the `providers` array.
 
 <docs-code language="ts" highlight="[2,3,6]">
 import {ApplicationConfig} from '@angular/core';
@@ -43,13 +43,13 @@ export const appConfig: ApplicationConfig = {
 
 </docs-step>
 
-<docs-step title="Import `RouterOutlet` component">
+<docs-step title="Import `RouterOutlet` in the component">
 
 Finally, to make sure your app is ready to use the Angular Router, you need to tell the app where you expect the router to display the desired content. Accomplish that by using the `RouterOutlet` directive from `@angular/router`.
 
 Update the template for `AppComponent` by adding `<router-outlet />`
 
-<docs-code language="ts" highlight="[11]">
+<docs-code language="angular-ts" highlight="[11]">
 import {RouterOutlet} from '@angular/router';
 
 @Component({
@@ -62,7 +62,6 @@ import {RouterOutlet} from '@angular/router';
     </nav>
     <router-outlet />
   `,
-  standalone: true,
   imports: [RouterOutlet],
 })
 export class AppComponent {}

@@ -30,8 +30,8 @@ To install Angular CLI on your local system, you need to install [Node.js](https
 Angular CLI uses Node and its associated package manager, npm, to install and run JavaScript tools outside the browser.
 
 [Download and install Node.js](https://nodejs.org/en/download), which will include the `npm` CLI as well.
-Angular requires an [active LTS or maintenance LTS](https://nodejs.org/about/releases) version of Node.js.
-See [Angular's version compatibility](versions) guide for more information.
+Angular requires an [active LTS or maintenance LTS](https://nodejs.org/en/about/previous-releases) version of Node.js.
+See [Angular's version compatibility](reference/versions) guide for more information.
 
 ## Install the Angular CLI
 
@@ -46,7 +46,7 @@ npm install -g @angular/cli
 ### Powershell execution policy
 
 On Windows client computers, the execution of PowerShell scripts is disabled by default, so the above command may fail with an error.
-To allow the execution of PowerShell scripts, which is needed for npm global binaries, you must set the following <a href="https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies">execution policy</a>:
+To allow the execution of PowerShell scripts, which is needed for npm global binaries, you must set the following <a href="https://docs.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies">execution policy</a>:
 
 <docs-code language="sh">
 

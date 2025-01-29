@@ -1,12 +1,11 @@
-import { Component, DebugElement } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
+import {Component, DebugElement} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
 
-import { HighlightDirective } from './highlight.directive';
+import {HighlightDirective} from './highlight.directive';
 
 // #docregion test-component
 @Component({
-  standalone: true,
   template: ` <h2 highlight="yellow">Something Yellow</h2>
     <h2 highlight>The Default (Gray)</h2>
     <h2>No Highlight</h2>

@@ -2,7 +2,7 @@
 
 In Angular, the component's logic and behavior are defined in the component's TypeScript class.
 
-In this activity you'll learn how to update the component class and how to use [interpolation](/guide/templates/interpolation).
+In this activity, you'll learn how to update the component class and how to use [interpolation](/guide/templates/binding#render-dynamic-text-with-text-interpolation).
 
 <hr />
 
@@ -17,7 +17,7 @@ export class AppComponent {
 }
 ```
 
-The `city` property is of type `string` but you can omit the type because of [type inference in TypeScript](typescript.org/type-inference). The `city` property can be used in the `AppComponent` class and can be referenced in the component template.
+The `city` property is of type `string` but you can omit the type because of [type inference in TypeScript](https://www.typescriptlang.org/docs/handbook/type-inference.html). The `city` property can be used in the `AppComponent` class and can be referenced in the component template.
 
 <br>
 

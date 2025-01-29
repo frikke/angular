@@ -3,11 +3,10 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ɵɵdefineInjectable} from '../di';
-import {INJECTOR, LView} from '../render3/interfaces/view';
+import {Injector, ɵɵdefineInjectable} from '../di';
 import {arrayInsert2, arraySplice} from '../util/array_utils';
 
 /**
@@ -15,7 +14,8 @@ import {arrayInsert2, arraySplice} from '../util/array_utils';
  * Invoking the returned function schedules a trigger.
  */
 export function onTimer(delay: number) {
-  return (callback: VoidFunction, lView: LView) => scheduleTimerTrigger(delay, callback, lView);
+  return (callback: VoidFunction, injector: Injector) =>
+    scheduleTimerTrigger(delay, callback, injector);
 }
 
 /**
@@ -23,10 +23,9 @@ export function onTimer(delay: number) {
  *
  * @param delay A number of ms to wait until firing a callback.
  * @param callback A function to be invoked after a timeout.
- * @param lView LView that hosts an instance of a defer block.
+ * @param injector injector for the app.
  */
-export function scheduleTimerTrigger(delay: number, callback: VoidFunction, lView: LView) {
-  const injector = lView[INJECTOR]!;
+export function scheduleTimerTrigger(delay: number, callback: VoidFunction, injector: Injector) {
   const scheduler = injector.get(TimerScheduler);
   const cleanupFn = () => scheduler.remove(callback);
   scheduler.add(delay, callback);
@@ -43,23 +42,23 @@ export class TimerScheduler {
   executingCallbacks = false;
 
   // Currently scheduled `setTimeout` id.
-  timeoutId: number|null = null;
+  timeoutId: number | null = null;
 
   // When currently scheduled timer would fire.
-  invokeTimerAt: number|null = null;
+  invokeTimerAt: number | null = null;
 
   // List of callbacks to be invoked.
   // For each callback we also store a timestamp on when the callback
   // should be invoked. We store timestamps and callback functions
   // in a flat array to avoid creating new objects for each entry.
   // [timestamp1, callback1, timestamp2, callback2, ...]
-  current: Array<number|VoidFunction> = [];
+  current: Array<number | VoidFunction> = [];
 
   // List of callbacks collected while invoking current set of callbacks.
   // Those callbacks are added to the "current" queue at the end of
   // the current callback invocation. The shape of this list is the same
   // as the shape of the `current` list.
-  deferred: Array<number|VoidFunction> = [];
+  deferred: Array<number | VoidFunction> = [];
 
   add(delay: number, callback: VoidFunction) {
     const target = this.executingCallbacks ? this.deferred : this.current;
@@ -81,7 +80,11 @@ export class TimerScheduler {
     }
   }
 
-  private addToQueue(target: Array<number|VoidFunction>, invokeAt: number, callback: VoidFunction) {
+  private addToQueue(
+    target: Array<number | VoidFunction>,
+    invokeAt: number,
+    callback: VoidFunction,
+  ) {
     let insertAtIndex = target.length;
     for (let i = 0; i < target.length; i += 2) {
       const invokeQueuedCallbackAt = target[i] as number;
@@ -97,7 +100,7 @@ export class TimerScheduler {
     arrayInsert2(target, insertAtIndex, invokeAt, callback);
   }
 
-  private removeFromQueue(target: Array<number|VoidFunction>, callback: VoidFunction) {
+  private removeFromQueue(target: Array<number | VoidFunction>, callback: VoidFunction) {
     let index = -1;
     for (let i = 0; i < target.length; i += 2) {
       const queuedCallback = target[i + 1];
@@ -174,18 +177,20 @@ export class TimerScheduler {
     // average frame duration. This is needed for better
     // batching and to avoid kicking off excessive change
     // detection cycles.
-    const FRAME_DURATION_MS = 16;  // 1000ms / 60fps
+    const FRAME_DURATION_MS = 16; // 1000ms / 60fps
 
     if (this.current.length > 0) {
       const now = Date.now();
       // First element in the queue points at the timestamp
       // of the first (earliest) event.
       const invokeAt = this.current[0] as number;
-      if (this.timeoutId === null ||
-          // Reschedule a timer in case a queue contains an item with
-          // an earlier timestamp and the delta is more than an average
-          // frame duration.
-          (this.invokeTimerAt && (this.invokeTimerAt - invokeAt > FRAME_DURATION_MS))) {
+      if (
+        this.timeoutId === null ||
+        // Reschedule a timer in case a queue contains an item with
+        // an earlier timestamp and the delta is more than an average
+        // frame duration.
+        (this.invokeTimerAt && this.invokeTimerAt - invokeAt > FRAME_DURATION_MS)
+      ) {
         // There was a timeout already, but an earlier event was added
         // into the queue. In this case we drop an old timer and setup
         // a new one with an updated (smaller) timeout.
@@ -212,7 +217,7 @@ export class TimerScheduler {
   }
 
   /** @nocollapse */
-  static ɵprov = /** @pureOrBreakMyCode */ ɵɵdefineInjectable({
+  static ɵprov = /** @pureOrBreakMyCode */ /* @__PURE__ */ ɵɵdefineInjectable({
     token: TimerScheduler,
     providedIn: 'root',
     factory: () => new TimerScheduler(),

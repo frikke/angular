@@ -3,17 +3,15 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
-
-
 
 /**
  * @license
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {parseCookieValue} from '@angular/common/src/cookie';
@@ -24,8 +22,9 @@ describe('cookies', () => {
     expect(parseCookieValue(cookie, 'xsrf-token')).toBe('token-value');
   });
   it('handles encoded keys', () => {
-    expect(parseCookieValue('whitespace%20token=token-value', 'whitespace token'))
-        .toBe('token-value');
+    expect(parseCookieValue('whitespace%20token=token-value', 'whitespace token')).toBe(
+      'token-value',
+    );
   });
   it('handles encoded values', () => {
     expect(parseCookieValue('token=whitespace%20', 'token')).toBe('whitespace ');

@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 /**
@@ -53,7 +53,6 @@ export const enum RuntimeErrorCode {
   REGISTRATION_FAILED = 3503,
   CREATE_ANIMATION_FAILED = 3504,
   TRANSITION_FAILED = 3505,
-
 
   // Animations
   BROWSER_ANIMATION_BUILDER_INJECTED_WITHOUT_ANIMATIONS = 3600,

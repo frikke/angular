@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Component, Input} from '@angular/core';
@@ -21,19 +21,18 @@ let trustedGreyColor: SafeStyle;
     <table>
       <tbody>
         @for (row of data; track $index) {
-          <tr>
-            @for (cell of row; track $index) {
-              <td [style.backgroundColor]="getColor(cell.row)">
-                @defer (when condition; on immediate) {
-                  <!--
+        <tr>
+          @for (cell of row; track $index) {
+          <td [style.backgroundColor]="getColor(cell.row)">
+            @defer (when condition; on immediate) {
+            <!--
                     Use static text in cells to avoid the need
                     to run a new change detection cycle.
                   -->
-                  Cell
-                }
-              </td>
-            }
-          </tr>
+            Cell }
+          </td>
+          }
+        </tr>
         }
       </tbody>
     </table>

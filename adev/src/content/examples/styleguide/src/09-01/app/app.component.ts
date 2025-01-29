@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'sg-app',
-  template: '<toh-hero-button></toh-hero-button>'
+  template: '<toh-hero-button></toh-hero-button>',
+  standalone: false,
 })
-export class AppComponent { }
+export class AppComponent {}

@@ -1,13 +1,11 @@
-@use '../../../../../../shared/src/lib/styles/media-queries' as mq;
+@use '@angular/docs/styles/media-queries' as mq;
 
 :host {
   display: flex;
   gap: 1rem;
   width: 100%;
   box-sizing: border-box;
-  @include mq.for-desktop-down {
-    flex-direction: column;
-  }
+  flex-direction: column;
 
   h1 {
     font-size: 1.5rem;
@@ -34,31 +32,14 @@
   .adev-header-and-tabs {
     padding: var(--layout-padding) 0 1rem var(--layout-padding);
     box-sizing: border-box;
+    width: 100%;
+    max-width: var(--page-width);
 
-    @include mq.for-desktop-up {
-      // this section should only be independently scrollable if
-      // the API tab is active & the screen is wide enough
-      &:has(.adev-reference-api-tab),
-      &.adev-cli-content {
-        position: sticky;
-        top: 0;
-        padding-inline-end: 1rem;
-        max-height: 100vh;
-        height: max-content;
-        overflow-y: scroll;
-        width: 50%;
-      }
-      &:has(.adev-reference-api-tab) {
-        width: 60%;
-      }
-      &:not(.adev-reference-api-tab) {
-        max-width: var(--page-width);
-      }
-    }
     @include mq.for-desktop-down {
       padding: var(--layout-padding);
-      width: 100%;
+      max-width: none;
     }
+
     &::-webkit-scrollbar-thumb {
       background-color: var(--septenary-contrast);
       border-radius: 10px;
@@ -69,11 +50,10 @@
   .docs-code {
     pre {
       margin-block: 0;
-      padding-block: 1rem;
     }
   }
 
-  .adev-reference-header {
+  .docs-reference-header {
     > p {
       color: var(--secondary-contrast);
       margin-block-start: 0;
@@ -94,17 +74,19 @@
     }
   }
 
-  .adev-reference-api-tab {
+  .docs-reference-api-tab {
     display: flex;
     gap: 1.81rem;
     align-items: flex-start;
+    margin-bottom: 1px;
+
     @include mq.for-desktop-down {
       flex-direction: column;
     }
 
     & > .docs-code {
+      box-sizing: border-box;
       width: 100%;
-      max-height: 93vh;
       overflow: hidden;
       padding: 0;
 
@@ -116,13 +98,7 @@
       button {
         transition: background-color 0.3s ease;
 
-        &.hljs-ln-line {
-          font-weight: 400;
-          text-align: left;
-          padding-block: 0.25rem;
-        }
-
-        &.hljs-ln-line-highlighted {
+        &.shiki-ln-line-highlighted {
           background-color: var(--senary-contrast);
         }
         &:hover {
@@ -150,29 +126,31 @@
     }
   }
 
+  .docs-reference-cli-toc {
+    margin-bottom: 1rem;
+  }
+
   .adev-reference-tab {
     min-width: 50ch;
     margin-block-start: 2.5rem;
   }
 
-  .adev-reference-members-container {
+  .docs-reference-members-container {
     width: 40%;
-    padding: 0 var(--layout-padding) 1rem 0;
     box-sizing: border-box;
-    max-width: 60ch;
+    width: 100%;
+    max-width: var(--page-width);
+    padding: 0 0 1rem var(--layout-padding);
+
     @include mq.for-desktop-down {
-      width: 100%;
       padding: var(--layout-padding);
+      padding-top: 0;
       max-width: none;
-      // override javascript-applied margin-top:
-      // determined by how much space the sticky header takes up
-      // to align the selected card member with the code block
-      margin-block-start: 0 !important;
     }
   }
 
   // Sidebar
-  .adev-reference-members {
+  .docs-reference-members {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -182,7 +160,7 @@
     }
   }
 
-  .adev-reference-title {
+  .docs-reference-title {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -217,7 +195,7 @@
     gap: 0.5rem;
   }
 
-  .adev-reference-category {
+  .docs-reference-category {
     color: var(--gray-400);
     font-size: 0.875rem;
     font-weight: 500;
@@ -225,7 +203,21 @@
     letter-spacing: -0.00875rem;
   }
 
-  .adev-reference-member-card {
+  .docs-reference-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    padding: 0.7rem 1rem;
+
+    code:not(pre *) {
+      padding: 0 0.3rem;
+    }
+  }
+
+  .docs-reference-member-card {
     border: 1px solid var(--senary-contrast);
     border-radius: 0.25rem;
     position: relative;
@@ -248,43 +240,44 @@
       }
     }
 
-    &:has(.adev-reference-card-body) {
-      header {
-        border-radius: 0.25rem 0.25rem 0 0;
-        border-bottom: 1px solid var(--senary-contrast);
-      }
-    }
-
     header {
       display: flex;
       flex-direction: column;
-      padding: 0.7rem 1rem;
-      border-radius: 0.25rem;
+      border-radius: 0.25rem 0.25rem 0 0;
       background-color: var(--octonary-contrast);
       position: relative;
       z-index: 10;
-      transition: background-color 0.3s ease, border 0.3s ease;
+      cursor: pointer;
+      transition:
+        background-color 0.3s ease,
+        border 0.3s ease;
 
-      // h3 + code || # of overloads
-      .adev-reference-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        div {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
+      & > code {
+        max-width: 100%;
       }
 
+      code:has(pre) {
+        padding: 0;
+      }
+
+      pre {
+        margin: 0;
+
+        /* Do we have a better alternative ? */
+        overflow: auto;
+      }
+    }
+
+    .docs-reference-card-header {
       h3 {
         display: inline-block;
         font-family: var(--code-font);
-        font-size: 1.25rem;
+        font-size: 1rem;
         letter-spacing: -0.025rem;
         margin: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       code,
@@ -299,7 +292,7 @@
     }
   }
 
-  .adev-reference-card-body {
+  .docs-reference-card-body {
     padding: 0.25rem 1.25rem;
     background: var(--septenary-contrast);
     transition: background-color 0.3s ease;
@@ -313,17 +306,21 @@
     .docs-code {
       margin-block-end: 1rem;
     }
+
+    &:empty {
+      display: none;
+    }
   }
 
   // when it's not the only card...
-  .adev-reference-card-item:has(~ .adev-reference-card-item) {
+  .docs-reference-card-item:has(~ .docs-reference-card-item) {
     border: 1px solid var(--senary-contrast);
     margin-block: 1rem;
     border-radius: 0.25rem;
     padding-inline: 1rem;
   }
   // & the last card
-  .adev-reference-card-item:last-child {
+  .docs-reference-card-item:last-child {
     &:not(:first-of-type) {
       border: 1px solid var(--senary-contrast);
       margin-block: 1rem;
@@ -332,7 +329,7 @@
     }
   }
 
-  .adev-reference-card-item {
+  .docs-reference-card-item {
     span {
       display: inline-block;
       font-size: 0.875rem;
@@ -342,37 +339,41 @@
     }
   }
 
-  .adev-function-definition {
+  .docs-function-definition {
     &:has(*) {
       border-block-end: 1px solid var(--senary-contrast);
     }
   }
 
-  .adev-param-group {
+  .docs-deprecation-message {
+    border-block-end: 1px solid var(--senary-contrast);
+  }
+
+  .docs-param-group {
     margin-block-start: 1rem;
   }
 
   // If it's the only param group...
-  .adev-param-group:not(:has(~ .adev-param-group)) {
+  .docs-param-group:not(:has(~ .docs-param-group)) {
     margin-block: 1rem;
   }
 
-  .adev-return-type {
+  .docs-return-type {
     padding-block: 1rem;
 
     // & does not follow a function definition
-    &:not(.adev-function-definition + .adev-return-type) {
+    &:not(.docs-function-definition + .docs-return-type) {
       border-block-start: 1px solid var(--senary-contrast);
     }
   }
 
-  .adev-param-keyword {
+  .docs-param-keyword {
     color: var(--primary-contrast);
     font-family: var(--code-font);
     margin-inline-end: 0.5rem;
   }
 
-  .adev-param-name {
+  .docs-param-name {
     color: var(--vivid-pink);
     font-family: var(--code-font);
     margin-inline-end: 0.25rem;
@@ -381,7 +382,7 @@
     }
   }
 
-  .adev-deprecated {
+  .docs-deprecated {
     color: var(--page-background);
     background-color: var(--quaternary-contrast);
     width: max-content;
@@ -391,13 +392,26 @@
   }
 
   // deprecated markers beside header
-  .adev-reference-header ~ .adev-deprecated {
+  .docs-reference-header ~ .docs-deprecated {
     margin-block-start: 0.5rem;
   }
 
-  .adev-parameter-description {
+  .docs-parameter-description {
     p:first-child {
       margin-block-start: 0;
+    }
+  }
+
+  .docs-ref-content {
+    padding: 1rem 0;
+
+    &:not(:first-child) {
+      border-block-start: 1px solid var(--senary-contrast);
+    }
+
+    .docs-param-keyword {
+      display: block;
+      margin: 0 0 0.5rem 0;
     }
   }
 }

@@ -12,10 +12,11 @@ import {
   inject,
   OnInit,
   PLATFORM_ID,
-  ViewChild,
+  Signal,
+  viewChild,
 } from '@angular/core';
 import {isPlatformBrowser} from '@angular/common';
-import {NgProgressComponent} from 'ngx-progressbar';
+import {NgProgressbar, NgProgressRef} from 'ngx-progressbar';
 import {
   NavigationCancel,
   NavigationEnd,
@@ -27,12 +28,11 @@ import {
 import {filter, map, switchMap, take} from 'rxjs/operators';
 
 /** Time to wait after navigation starts before showing the progress bar. This delay allows a small amount of time to skip showing the progress bar when a navigation is effectively immediate. 30ms is approximately the amount of time we can wait before a delay is perceptible.*/
-const PROGRESS_BAR_DELAY = 30;
+export const PROGRESS_BAR_DELAY = 30;
 
 @Component({
   selector: 'adev-progress-bar',
-  standalone: true,
-  imports: [NgProgressComponent],
+  imports: [NgProgressbar],
   template: `
     <ng-progress aria-label="Page load progress" />
   `,
@@ -41,7 +41,7 @@ const PROGRESS_BAR_DELAY = 30;
 export class ProgressBarComponent implements OnInit {
   private readonly router = inject(Router);
 
-  @ViewChild(NgProgressComponent, {static: true}) progressBar!: NgProgressComponent;
+  progressBar = viewChild.required(NgProgressRef);
 
   isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
@@ -62,7 +62,7 @@ export class ProgressBarComponent implements OnInit {
         map(() => {
           // Only apply set the property if the navigation is not "immediate"
           return setTimeout(() => {
-            this.progressBar.start();
+            this.progressBar().start();
           }, PROGRESS_BAR_DELAY);
         }),
         switchMap((timeoutId) => {
@@ -83,7 +83,7 @@ export class ProgressBarComponent implements OnInit {
       .subscribe((timeoutId) => {
         // When the navigation finishes, prevent the navigating class from being applied in the timeout.
         clearTimeout(timeoutId);
-        this.progressBar.complete();
+        this.progressBar().complete();
       });
   }
 }

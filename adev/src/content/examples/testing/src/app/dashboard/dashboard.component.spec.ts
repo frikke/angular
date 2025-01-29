@@ -1,20 +1,20 @@
-import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { NavigationEnd, provideRouter, Router } from '@angular/router';
-import { RouterTestingHarness } from '@angular/router/testing';
-import { firstValueFrom } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import {provideHttpClient} from '@angular/common/http';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
+import {NavigationEnd, provideRouter, Router} from '@angular/router';
+import {RouterTestingHarness} from '@angular/router/testing';
+import {firstValueFrom} from 'rxjs';
+import {filter} from 'rxjs/operators';
 
-import { addMatchers, click } from '../../testing';
-import { HeroService } from '../model/hero.service';
-import { getTestHeroes } from '../model/testing/test-heroes';
+import {addMatchers, click} from '../../testing';
+import {HeroService} from '../model/hero.service';
+import {getTestHeroes} from '../model/testing/test-heroes';
 
-import { DashboardComponent } from './dashboard.component';
-import { appConfig } from '../app.config';
-import { HeroDetailComponent } from '../hero/hero-detail.component';
+import {DashboardComponent} from './dashboard.component';
+import {appConfig} from '../app.config';
+import {HeroDetailComponent} from '../hero/hero-detail.component';
 
 beforeEach(addMatchers);
 
@@ -45,7 +45,7 @@ describe('DashboardComponent (shallow)', () => {
     TestBed.configureTestingModule(
       Object.assign({}, appConfig, {
         imports: [DashboardComponent, HeroDetailComponent],
-        providers: [provideRouter([{ path: 'heroes/:id', component: HeroDetailComponent }])],
+        providers: [provideRouter([{path: 'heroes/:id', component: HeroDetailComponent}])],
         schemas: [NO_ERRORS_SCHEMA],
       }),
     );
@@ -65,27 +65,24 @@ describe('DashboardComponent (shallow)', () => {
 
 /** Add TestBed providers, compile, and create DashboardComponent */
 function compileAndCreate() {
-  beforeEach(waitForAsync(() => {
+  beforeEach(async () => {
     // #docregion router-harness
     TestBed.configureTestingModule(
       Object.assign({}, appConfig, {
         imports: [DashboardComponent],
         providers: [
-          provideRouter([{ path: '**', component: DashboardComponent }]),
+          provideRouter([{path: '**', component: DashboardComponent}]),
           provideHttpClient(),
           provideHttpClientTesting(),
           HeroService,
         ],
       }),
-    )
-      .compileComponents()
-      .then(async () => {
-        harness = await RouterTestingHarness.create();
-        comp = await harness.navigateByUrl('/', DashboardComponent);
-        TestBed.inject(HttpTestingController).expectOne('api/heroes').flush(getTestHeroes());
-      });
+    );
+    harness = await RouterTestingHarness.create();
+    comp = await harness.navigateByUrl('/', DashboardComponent);
+    TestBed.inject(HttpTestingController).expectOne('api/heroes').flush(getTestHeroes());
     // #enddocregion router-harness
-  }));
+  });
 }
 
 /**
