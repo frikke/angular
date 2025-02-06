@@ -1,15 +1,14 @@
 // #docplaster
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 
-import { Hero } from '../model/hero';
-import { sharedImports } from '../shared/shared';
+import {Hero} from '../model/hero';
+import {sharedImports} from '../shared/shared';
 
-import { HeroDetailService } from './hero-detail.service';
+import {HeroDetailService} from './hero-detail.service';
 
 // #docregion prototype
 @Component({
-  standalone: true,
   selector: 'app-hero-detail',
   templateUrl: './hero-detail.component.html',
   styleUrls: ['./hero-detail.component.css'],
@@ -38,7 +37,7 @@ export class HeroDetailComponent implements OnInit {
   private getHero(id: string | null): void {
     // when no id or id===0, create new blank hero
     if (!id) {
-      this.hero = { id: 0, name: '' } as Hero;
+      this.hero = {id: 0, name: ''} as Hero;
       return;
     }
 
@@ -60,7 +59,7 @@ export class HeroDetailComponent implements OnInit {
   }
 
   gotoList() {
-    this.router.navigate(['../'], { relativeTo: this.route });
+    this.router.navigate(['../'], {relativeTo: this.route});
   }
   // #docregion prototype
 }

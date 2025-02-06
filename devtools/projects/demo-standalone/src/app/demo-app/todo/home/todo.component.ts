@@ -3,10 +3,9 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {CommonModule} from '@angular/common';
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core';
 
 import {TooltipDirective} from './tooltip.directive';
@@ -20,19 +19,22 @@ export interface Todo {
 @Component({
   selector: 'app-todo',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [CommonModule, TooltipDirective],
-  styles: [`
+  imports: [TooltipDirective],
+  styles: [
+    `
       .destroy {
         cursor: pointer;
         display: unset !important;
       }
-    `],
+    `,
+  ],
   template: `
     <li [class.completed]="todo.completed">
       <div class="view" appTooltip>
         <input class="toggle" type="checkbox" [checked]="todo.completed" (change)="toggle()" />
-        <label (dblclick)="enableEditMode()" [style.display]="editMode ? 'none' : 'block'">{{ todo.label }}</label>
+        <label (dblclick)="enableEditMode()" [style.display]="editMode ? 'none' : 'block'">{{
+          todo.label
+        }}</label>
         <button class="destroy" (click)="delete.emit(todo)"></button>
       </div>
       <input
@@ -42,10 +44,10 @@ export interface Todo {
         (keydown.enter)="completeEdit($any($event.target).value)"
       />
     </li>
-  `
+  `,
 })
 export class TodoComponent {
-  @Input() todo: Todo;
+  @Input() todo!: Todo;
   @Output() update = new EventEmitter();
   @Output() delete = new EventEmitter();
 

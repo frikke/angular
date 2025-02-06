@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {ERROR_DETAILS_PAGE_BASE_URL} from './error_details_base_url';
@@ -16,7 +16,7 @@ import {ERROR_DETAILS_PAGE_BASE_URL} from './error_details_base_url';
  * angular.io. This extra annotation is needed to avoid introducing a separate set to store
  * error codes which have guides, which might leak into runtime code.
  *
- * Full list of available error guides can be found at https://angular.io/errors.
+ * Full list of available error guides can be found at https://angular.dev/errors.
  *
  * Error code ranges per package:
  *  - core (this package): 100-999
@@ -30,7 +30,6 @@ export const enum RuntimeErrorCode {
   // Change Detection Errors
   EXPRESSION_CHANGED_AFTER_CHECKED = -100,
   RECURSIVE_APPLICATION_REF_TICK = 101,
-  RECURSIVE_APPLICATION_RENDER = 102,
   INFINITE_CHANGE_DETECTION = 103,
 
   // Dependency Injection Errors
@@ -60,6 +59,7 @@ export const enum RuntimeErrorCode {
   HOST_DIRECTIVE_UNDEFINED_BINDING = 311,
   HOST_DIRECTIVE_CONFLICTING_ALIAS = 312,
   MULTIPLE_MATCHING_PIPES = 313,
+  UNINITIALIZED_LET_ACCESS = 314,
 
   // Bootstrap Errors
   MULTIPLE_PLATFORMS = 400,
@@ -70,6 +70,7 @@ export const enum RuntimeErrorCode {
   ASYNC_INITIALIZERS_STILL_RUNNING = 405,
   APPLICATION_REF_ALREADY_DESTROYED = 406,
   RENDERER_NOT_FOUND = 407,
+  PROVIDED_BOTH_ZONE_AND_ZONELESS = 408,
 
   // Hydration Errors
   HYDRATION_NODE_MISMATCH = -500,
@@ -80,6 +81,7 @@ export const enum RuntimeErrorCode {
   MISSING_HYDRATION_ANNOTATIONS = -505,
   HYDRATION_STABLE_TIMEDOUT = -506,
   MISSING_SSR_CONTENT_INTEGRITY_MARKER = -507,
+  MISCONFIGURED_INCREMENTAL_HYDRATION = 508,
 
   // Signal Errors
   SIGNAL_WRITE_FROM_ILLEGAL_CONTEXT = 600,
@@ -95,7 +97,7 @@ export const enum RuntimeErrorCode {
   MISSING_LOCALE_DATA = 701,
 
   // Defer errors (750-799 range)
-  DEFER_LOADING_FAILED = 750,
+  DEFER_LOADING_FAILED = -750,
 
   // standalone errors
   IMPORT_PROVIDERS_FROM_STANDALONE = 800,
@@ -116,19 +118,33 @@ export const enum RuntimeErrorCode {
   VIEW_ALREADY_DESTROYED = 911,
   COMPONENT_ID_COLLISION = -912,
   IMAGE_PERFORMANCE_WARNING = -913,
+  UNEXPECTED_ZONEJS_PRESENT_IN_ZONELESS_MODE = 914,
+
+  // Signal integration errors
+  REQUIRED_INPUT_NO_VALUE = -950,
+  REQUIRED_QUERY_NO_VALUE = -951,
+  REQUIRED_MODEL_NO_VALUE = 952,
+
+  // Output()
+  OUTPUT_REF_DESTROYED = 953,
+
+  // Repeater errors
+  LOOP_TRACK_DUPLICATE_KEYS = -955,
+  LOOP_TRACK_RECREATE = -956,
 
   // Runtime dependency tracker errors
-  RUNTIME_DEPS_INVALID_IMPORTED_TYPE = 1000,
-  RUNTIME_DEPS_ORPHAN_COMPONENT = 1001,
-}
+  RUNTIME_DEPS_INVALID_IMPORTED_TYPE = 980,
+  RUNTIME_DEPS_ORPHAN_COMPONENT = 981,
 
+  // Upper bounds for core runtime errors is 999
+}
 
 /**
  * Class that represents a runtime error.
  * Formats and outputs the error message in a consistent way.
  *
  * Example:
- * ```
+ * ```ts
  *  throw new RuntimeError(
  *    RuntimeErrorCode.INJECTOR_ALREADY_DESTROYED,
  *    ngDevMode && 'Injector has already been destroyed.');
@@ -140,7 +156,10 @@ export const enum RuntimeErrorCode {
  * logic.
  */
 export class RuntimeError<T extends number = RuntimeErrorCode> extends Error {
-  constructor(public code: T, message: null|false|string) {
+  constructor(
+    public code: T,
+    message: null | false | string,
+  ) {
     super(formatRuntimeError<T>(code, message));
   }
 }
@@ -150,7 +169,9 @@ export class RuntimeError<T extends number = RuntimeErrorCode> extends Error {
  * See additional info on the `message` argument type in the `RuntimeError` class description.
  */
 export function formatRuntimeError<T extends number = RuntimeErrorCode>(
-    code: T, message: null|false|string): string {
+  code: T,
+  message: null | false | string,
+): string {
   // Error code might be a negative number, which is a special marker that instructs the logic to
   // generate a link to the error details page on angular.io.
   // We also prepend `0` to non-compile-time errors.
@@ -161,8 +182,7 @@ export function formatRuntimeError<T extends number = RuntimeErrorCode>(
   if (ngDevMode && code < 0) {
     const addPeriodSeparator = !errorMessage.match(/[.,;!?\n]$/);
     const separator = addPeriodSeparator ? '.' : '';
-    errorMessage =
-        `${errorMessage}${separator} Find more at ${ERROR_DETAILS_PAGE_BASE_URL}/${fullCode}`;
+    errorMessage = `${errorMessage}${separator} Find more at ${ERROR_DETAILS_PAGE_BASE_URL}/${fullCode}`;
   }
   return errorMessage;
 }

@@ -125,7 +125,7 @@ The service worker either returns a cached response or sends the request to the 
 The service worker only caches responses to non-mutating requests, such as `GET` and `HEAD`.
 
 If the service worker receives an error from the server or it doesn't receive a response, it returns an error status that indicates the result of the call.
-For example, if the service worker doesn't receive a response, it creates a [504 Gateway Timeout](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504) status to return. The `504` status in this example could be returned because the server is offline or the client is disconnected.
+For example, if the service worker doesn't receive a response, it creates a [504 Gateway Timeout](https://developer.mozilla.org/docs/Web/HTTP/Status/504) status to return. The `504` status in this example could be returned because the server is offline or the client is disconnected.
 
 ## Debugging the Angular service worker
 
@@ -155,7 +155,7 @@ Clients: 7b79a015-69af-4d3d-9ae6-95ba90c79486, 5bc08295-aaf2-42f3-a4cc-9e4ef9100
 Last update tick: 1s496u
 Last update run: never
 Task queue:
- &ast; init post-load (update, cleanup)
+ * init post-load (update, cleanup)
 
 Debug log:
 
@@ -232,7 +232,7 @@ HELPFUL: This version hash is the "latest manifest hash" listed above. Both clie
 Last update tick: 1s496u
 Last update run: never
 Task queue:
- &ast; init post-load (update, cleanup)
+ * init post-load (update, cleanup)
 
 </docs-code>
 

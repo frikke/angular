@@ -1,10 +1,10 @@
 # Component Communication with `@Output`
 
-When working with components it may be required to notify other components that something has happened. Perhaps a button has been clicked, an item has been added/removed from a list or some other important update has occured. In this scenario components need to communicate with parent components.
+When working with components it may be required to notify other components that something has happened. Perhaps a button has been clicked, an item has been added/removed from a list or some other important update has occurred. In this scenario components need to communicate with parent components.
 
 Angular uses the `@Output` decorator to enable this type of behavior.
 
-In this activity you'll learn how to use the `@Output` decorator and `EventEmitter` to communicate with components.
+In this activity, you'll learn how to use the `@Output` decorator and `EventEmitter` to communicate with components.
 
 <hr />
 
@@ -25,7 +25,7 @@ class ChildComponent {
 
     onClick() {
         this.count++;
-        this.incrementCountEvent.emit(count);
+        this.incrementCountEvent.emit(this.count);
     }
 
 }
@@ -55,7 +55,7 @@ addItem() {
 <docs-step title="Update the `AppComponent` template">
 In `app.component.ts` update the template to listen to the emitted event by adding the following code:
 
-```html
+```angular-html
 <app-child (addItemEvent)="addItem($event)" />
 ```
 

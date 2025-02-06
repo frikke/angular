@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {DocEntry} from '@angular/compiler-cli/src/ngtsc/docs';
@@ -13,7 +13,7 @@ import {loadStandardTestFiles} from '@angular/compiler-cli/src/ngtsc/testing';
 
 import {NgtscTestEnvironment} from '../env';
 
-const testFiles = loadStandardTestFiles({fakeCore: true, fakeCommon: true});
+const testFiles = loadStandardTestFiles({fakeCommon: true});
 
 runInEachFileSystem(() => {
   let env!: NgtscTestEnvironment;
@@ -25,7 +25,9 @@ runInEachFileSystem(() => {
     });
 
     it('should extract standalone pipe info', () => {
-      env.write('index.ts', `
+      env.write(
+        'index.ts',
+        `
         import {Pipe} from '@angular/core';
         @Pipe({
           standalone: true,
@@ -34,7 +36,8 @@ runInEachFileSystem(() => {
         export class ShortenPipe {
           transform(value: string): string { return ''; }
         }
-      `);
+      `,
+      );
 
       const docs: DocEntry[] = env.driveDocsExtraction('index.ts');
 
@@ -48,16 +51,22 @@ runInEachFileSystem(() => {
     });
 
     it('should extract NgModule pipe info', () => {
-      env.write('index.ts', `
+      env.write(
+        'index.ts',
+        `
         import {Pipe, NgModule} from '@angular/core';
-        @Pipe({name: 'shorten'})
+        @Pipe({
+          name: 'shorten',
+          standalone: false, 
+        })
         export class ShortenPipe {
           transform(value: string): string { return ''; }
         }
 
         @NgModule({declarations: [ShortenPipe]})
         export class PipeModule { }
-      `);
+      `,
+      );
 
       const docs: DocEntry[] = env.driveDocsExtraction('index.ts');
 

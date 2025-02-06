@@ -3,10 +3,10 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Mutable} from '../../interface/type';
+import {Writable} from '../../interface/type';
 import {DirectiveDef, InputTransformFunction} from '../interfaces/definition';
 
 /**
@@ -17,7 +17,7 @@ import {DirectiveDef, InputTransformFunction} from '../interfaces/definition';
  *
  * @codeGenApi
  */
-export function ɵɵInputTransformsFeature(definition: DirectiveDef<unknown>): void {
+export function ɵɵInputTransformsFeature<T>(definition: DirectiveDef<T>): void {
   const inputs = definition.inputConfig;
   const inputTransforms: Record<string, InputTransformFunction> = {};
 
@@ -26,12 +26,11 @@ export function ɵɵInputTransformsFeature(definition: DirectiveDef<unknown>): v
       // Note: the private names are used for the keys, rather than the public ones, because public
       // names can be re-aliased in host directives which would invalidate the lookup.
       const value = inputs[minifiedKey];
-      if (Array.isArray(value) && value[2]) {
-        inputTransforms[minifiedKey] = value[2];
+      if (Array.isArray(value) && value[3]) {
+        inputTransforms[minifiedKey] = value[3];
       }
     }
   }
 
-  (definition as Mutable<DirectiveDef<unknown>, 'inputTransforms'>).inputTransforms =
-      inputTransforms;
+  (definition as Writable<DirectiveDef<T>>).inputTransforms = inputTransforms;
 }

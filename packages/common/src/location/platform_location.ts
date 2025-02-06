@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {inject, Injectable, InjectionToken} from '@angular/core';
@@ -63,7 +63,7 @@ export abstract class PlatformLocation {
   abstract back(): void;
 
   historyGo?(relativePosition: number): void {
-    throw new Error('Not implemented');
+    throw new Error(ngDevMode ? 'Not implemented' : '');
   }
 }
 
@@ -73,7 +73,9 @@ export abstract class PlatformLocation {
  *
  * @publicApi
  */
-export const LOCATION_INITIALIZED = new InjectionToken<Promise<any>>('Location Initialized');
+export const LOCATION_INITIALIZED = new InjectionToken<Promise<any>>(
+  ngDevMode ? 'Location Initialized' : '',
+);
 
 /**
  * @description
@@ -92,8 +94,6 @@ export interface LocationChangeEvent {
 export interface LocationChangeListener {
   (event: LocationChangeEvent): any;
 }
-
-
 
 /**
  * `PlatformLocation` encapsulates all of the direct calls to platform APIs.

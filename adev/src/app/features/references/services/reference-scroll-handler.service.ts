@@ -6,65 +6,52 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {DOCUMENT} from '@angular/common';
-import {
-  DestroyRef,
-  EnvironmentInjector,
-  Injectable,
-  NgZone,
-  OnDestroy,
-  afterNextRender,
-  inject,
-  signal,
-} from '@angular/core';
+import {DOCUMENT, isPlatformBrowser} from '@angular/common';
+import {DestroyRef, Injectable, Injector, PLATFORM_ID, inject} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {auditTime, fromEvent} from 'rxjs';
-import {
-  API_REFERENCE_DETAILS_PAGE_MEMBERS_CLASS_NAME,
-  API_REFERENCE_MEMBER_CARD_CLASS_NAME,
-  API_TAB_ACTIVE_CODE_LINE,
-  MEMBER_ID_ATTRIBUTE,
-} from '../constants/api-reference-prerender.constants';
-import {WINDOW} from '@angular/docs-shared';
+import {fromEvent} from 'rxjs';
+import {MEMBER_ID_ATTRIBUTE} from '../constants/api-reference-prerender.constants';
+import {WINDOW} from '@angular/docs';
+import {Router} from '@angular/router';
+import {AppScroller} from '../../../app-scroller';
 
-export const SCROLL_EVENT_DELAY = 20;
-export const SCROLL_THRESHOLD = 20;
-
-interface ReferenceScrollHandlerInterface {
-  setupListeners(tocSelector: string): void;
-  updateMembersMarginTop(selectorOfTheElementToAlign: string): void;
-}
+// Adds some space/margin between the top of the target element and the top of viewport.
+const SCROLL_MARGIN_TOP = 100;
 
 @Injectable()
-export class ReferenceScrollHandler implements OnDestroy, ReferenceScrollHandlerInterface {
+export class ReferenceScrollHandler {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
-  private readonly injector = inject(EnvironmentInjector);
-  private readonly ngZone = inject(NgZone);
+  private readonly injector = inject(Injector);
   private readonly window = inject(WINDOW);
-
-  private readonly cardOffsetTop = new Map<string, number>();
-  private resizeObserver: ResizeObserver | null = null;
-
-  membersMarginTopInPx = signal<number>(0);
-
-  ngOnDestroy(): void {
-    this.resizeObserver?.disconnect();
-  }
+  private readonly router = inject(Router);
+  private readonly appScroller = inject(AppScroller);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   setupListeners(tocSelector: string): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     this.setupCodeToCListeners(tocSelector);
-    this.setupMemberCardListeners();
-    this.setScrollEventHandlers();
-    this.listenToResizeCardContainer();
+    this.setupFragmentChangeListener();
   }
 
-  updateMembersMarginTop(selectorOfTheElementToAlign: string): void {
-    const elementToAlign = this.document.querySelector<HTMLElement>(selectorOfTheElementToAlign);
+  private setupFragmentChangeListener() {
+    this.router.routerState.root.fragment
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((fragment) => {
+        // If there is no fragment or the scroll event has a position (traversing through history),
+        // allow the scroller to handle scrolling instead of going to the fragment
+        if (!fragment || this.appScroller.lastScrollEvent?.position) {
+          this.appScroller.scroll(this.injector);
+          return;
+        }
 
-    if (elementToAlign) {
-      this.updateMarginTopWhenTabBodyIsResized(elementToAlign);
-    }
+        const card = this.document.getElementById(fragment) as HTMLDivElement | null;
+        card?.focus();
+        this.scrollToCard(card);
+      });
   }
 
   private setupCodeToCListeners(tocSelector: string): void {
@@ -74,99 +61,25 @@ export class ReferenceScrollHandler implements OnDestroy, ReferenceScrollHandler
       return;
     }
 
-    this.ngZone.runOutsideAngular(() => {
-      fromEvent(tocContainer, 'click')
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((event) => {
-          // Get the card member ID from the attributes
-          const target =
-            event.target instanceof HTMLButtonElement
-              ? event.target
-              : this.findButtonElement(event.target as HTMLElement);
-          const memberId = this.getMemberId(target);
+    fromEvent(tocContainer, 'click')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.target instanceof HTMLAnchorElement) {
+          event.stopPropagation();
+          return;
+        }
 
-          if (memberId) {
-            const card = this.document.querySelector<HTMLDivElement>(`#${memberId}`);
-            this.scrollToCard(card);
-          }
-        });
-    });
-  }
+        // Get the card member ID from the attributes
+        const target =
+          event.target instanceof HTMLButtonElement
+            ? event.target
+            : this.findButtonElement(event.target as HTMLElement);
+        const memberId = this.getMemberId(target);
 
-  private setupMemberCardListeners(): void {
-    this.ngZone.runOutsideAngular(() => {
-      this.getAllMemberCards().forEach((card) => {
-        this.cardOffsetTop.set(card.id, card.offsetTop);
-        fromEvent(card, 'click')
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(() => {
-            this.scrollToCard(card);
-          });
+        if (memberId) {
+          this.router.navigate([], {fragment: memberId, replaceUrl: true});
+        }
       });
-    });
-  }
-
-  private setScrollEventHandlers(): void {
-    const scroll$ = fromEvent(this.document, 'scroll').pipe(
-      auditTime(SCROLL_EVENT_DELAY),
-      takeUntilDestroyed(this.destroyRef),
-    );
-
-    this.ngZone.runOutsideAngular(() => {
-      scroll$.subscribe(() => this.setActiveCodeLine());
-    });
-  }
-
-  private listenToResizeCardContainer(): void {
-    const membersCardContainer = this.document.querySelector(
-      API_REFERENCE_DETAILS_PAGE_MEMBERS_CLASS_NAME,
-    );
-    if (membersCardContainer) {
-      afterNextRender(
-        () => {
-          const resizeObserver = new ResizeObserver(() => {
-            this.updateCardsOffsetTop();
-            this.setActiveCodeLine();
-          });
-          resizeObserver.observe(membersCardContainer);
-          this.destroyRef.onDestroy(() => resizeObserver.disconnect());
-        },
-        {injector: this.injector},
-      );
-    }
-  }
-
-  private setActiveCodeLine(): void {
-    const activeCard = Array.from(this.cardOffsetTop)
-      .filter(([_, offsetTop]) => {
-        return offsetTop < this.window.scrollY + this.membersMarginTopInPx() + SCROLL_THRESHOLD;
-      })
-      .pop();
-
-    if (!activeCard) {
-      return;
-    }
-
-    const activeLines = this.document.querySelectorAll<HTMLButtonElement>(
-      `button.${API_TAB_ACTIVE_CODE_LINE}`,
-    );
-
-    const activeLine = activeLines.length > 0 ? activeLines.item(0) : null;
-    const previousActiveMemberId = this.getMemberId(activeLine);
-    const currentActiveMemberId = activeCard[0];
-
-    if (previousActiveMemberId && previousActiveMemberId !== currentActiveMemberId) {
-      for (const line of Array.from(activeLines)) {
-        line.classList.remove(API_TAB_ACTIVE_CODE_LINE);
-      }
-    } else {
-      const lines = this.document.querySelectorAll<HTMLButtonElement>(
-        `button[${MEMBER_ID_ATTRIBUTE}="${currentActiveMemberId}"]`,
-      );
-      for (const line of Array.from(lines)) {
-        line.classList.add(API_TAB_ACTIVE_CODE_LINE);
-      }
-    }
   }
 
   private scrollToCard(card: HTMLDivElement | null): void {
@@ -174,24 +87,14 @@ export class ReferenceScrollHandler implements OnDestroy, ReferenceScrollHandler
       return;
     }
 
-    card.focus();
+    if (card !== <HTMLElement>document.activeElement) {
+      (<HTMLElement>document.activeElement).blur();
+    }
 
     this.window.scrollTo({
-      top: card!.offsetTop - this.membersMarginTopInPx(),
+      top: card!.offsetTop - SCROLL_MARGIN_TOP,
       behavior: 'smooth',
     });
-  }
-
-  private updateCardsOffsetTop(): void {
-    this.getAllMemberCards().forEach((card) => {
-      this.cardOffsetTop.set(card.id, card.offsetTop);
-    });
-  }
-
-  private getAllMemberCards(): NodeListOf<HTMLDivElement> {
-    return this.document.querySelectorAll<HTMLDivElement>(
-      `${API_REFERENCE_MEMBER_CARD_CLASS_NAME}`,
-    );
   }
 
   private getMemberId(lineButton: HTMLButtonElement | null): string | undefined {
@@ -199,20 +102,6 @@ export class ReferenceScrollHandler implements OnDestroy, ReferenceScrollHandler
       return undefined;
     }
     return lineButton.attributes.getNamedItem(MEMBER_ID_ATTRIBUTE)?.value;
-  }
-
-  private updateMarginTopWhenTabBodyIsResized(tabBody: HTMLElement): void {
-    this.resizeObserver?.disconnect();
-
-    this.resizeObserver = new ResizeObserver((_) => {
-      this.ngZone.run(() => {
-        if (tabBody.offsetTop) {
-          this.membersMarginTopInPx.set(tabBody.offsetTop);
-        }
-      });
-    });
-
-    this.resizeObserver.observe(tabBody);
   }
 
   private findButtonElement(element: HTMLElement) {
@@ -228,10 +117,4 @@ export class ReferenceScrollHandler implements OnDestroy, ReferenceScrollHandler
 
     return null;
   }
-}
-
-export class ReferenceScrollHandlerNoop implements ReferenceScrollHandlerInterface {
-  membersMarginTopInPx = signal<number>(0);
-  setupListeners(_tocSelector: string): void {}
-  updateMembersMarginTop(_selectorOfTheElementToAlign: string): void {}
 }

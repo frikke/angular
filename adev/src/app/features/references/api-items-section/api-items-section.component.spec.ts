@@ -12,34 +12,60 @@ import ApiItemsSection from './api-items-section.component';
 import {ApiItemsGroup} from '../interfaces/api-items-group';
 import {ApiReferenceManager} from '../api-reference-list/api-reference-manager.service';
 import {ApiItemType} from '../interfaces/api-item-type';
-import {RouterTestingModule} from '@angular/router/testing';
+import {provideRouter} from '@angular/router';
+import {By} from '@angular/platform-browser';
 
 describe('ApiItemsSection', () => {
   let component: ApiItemsSection;
   let fixture: ComponentFixture<ApiItemsSection>;
-  let apiReferenceManagerSpy: jasmine.SpyObj<ApiReferenceManager>;
 
   const fakeGroup: ApiItemsGroup = {
-    title: 'Featured',
-    isFeatured: true,
+    title: 'Group',
+    id: 'group',
     items: [
-      {title: 'Fake Title', itemType: ApiItemType.CLASS, url: 'api/fakeTitle', isFeatured: true},
+      {
+        title: 'Fake Deprecated Title',
+        itemType: ApiItemType.CONST,
+        url: 'api/fakeDeprecatedTitle',
+        isDeprecated: true,
+      },
+      {
+        title: 'Fake Standard Title',
+        itemType: ApiItemType.DIRECTIVE,
+        url: 'api/fakeTitle',
+      },
     ],
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ApiItemsSection, RouterTestingModule],
-      providers: [{provide: ApiReferenceManager, useValue: apiReferenceManagerSpy}],
+      imports: [ApiItemsSection],
+      providers: [provideRouter([])],
     });
     fixture = TestBed.createComponent(ApiItemsSection);
     component = fixture.componentInstance;
-
-    component.group = fakeGroup;
-    fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should render list of all APIs of provided group', () => {
+    fixture.componentRef.setInput('group', fakeGroup);
+    fixture.detectChanges();
+
+    const apis = fixture.debugElement.queryAll(By.css('.adev-api-items-section-grid li'));
+
+    expect(apis.length).toBe(2);
+  });
+
+  it('should display deprecated icon for deprecated API', () => {
+    fixture.componentRef.setInput('group', fakeGroup);
+    fixture.detectChanges();
+
+    const deprecatedApiIcons = fixture.debugElement.queryAll(
+      By.css('.adev-api-items-section-grid li .docs-deprecated'),
+    );
+    const deprecatedApiTitle = deprecatedApiIcons[0].parent?.query(By.css('.adev-item-title'));
+
+    expect(deprecatedApiIcons.length).toBe(1);
+    expect(deprecatedApiIcons[0]).toBeTruthy();
+    expect(deprecatedApiTitle?.nativeElement.innerText).toBe('Fake Deprecated Title');
   });
 });

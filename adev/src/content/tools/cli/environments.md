@@ -28,7 +28,7 @@ Angular CLI builders support a `configurations` object, which allows overwriting
             }
           }
         },
-        &hellip;
+        …
       }
     }
   }
@@ -57,7 +57,7 @@ ng build --configuration debug,production,customer-facing
 `@angular-devkit/build-angular:browser` supports file replacements, an option for substituting source files before executing a build.
 Using this in combination with `--configuration` provides a mechanism for configuring environment-specific data in your application.
 
-Start by [generating environments](cli/generate#environments-command) to create the `src/environments/` directory and configure the project to use file replacements.
+Start by [generating environments](cli/generate/environments) to create the `src/environments/` directory and configure the project to use file replacements.
 
 <docs-code language="shell">
 
@@ -154,7 +154,7 @@ You can change or add file replacements for specific build targets by editing th
             "with": "src/environments/environment.development.ts"
           }
         ],
-        &hellip;
+        …
 
 </docs-code>
 
@@ -165,14 +165,10 @@ To add a staging environment, create a copy of `src/environments/environment.ts`
 <docs-code language="json">
 
   "configurations": {
-    "development": { &hellip; },
-    "production": { &hellip; },
+    "development": { … },
+    "production": { … },
     "staging": {
       "fileReplacements": [
-        {
-          "replace": "src/environments/environment.ts",
-          "with": "src/environments/environment.development.ts"
-        },
         {
           "replace": "src/environments/environment.ts",
           "with": "src/environments/environment.staging.ts"
@@ -201,7 +197,7 @@ You can also configure `ng serve` to use the targeted build configuration if you
 
   "serve": {
     "builder": "@angular-devkit/build-angular:dev-server",
-    "options": { &hellip; },
+    "options": { … },
     "configurations": {
       "development": {
         // Use the `development` configuration of the `build` target.

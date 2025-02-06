@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {CldrLocaleData} from './cldr-data';
@@ -17,7 +17,10 @@ import {getPluralFunction} from './plural-function';
  * Generated the contents for the global locale file
  */
 export function generateLocaleGlobalFile(
-    locale: string, localeData: CldrLocaleData, baseCurrencies: BaseCurrencies) {
+  locale: string,
+  localeData: CldrLocaleData,
+  baseCurrencies: BaseCurrencies,
+) {
   const basicLocaleData = generateBasicLocaleString(locale, localeData, baseCurrencies);
   const extraLocaleData = generateLocaleExtraDataArrayCode(locale, localeData);
   const data = basicLocaleData.replace(/\]$/, `, ${extraLocaleData}]`);
@@ -32,7 +35,6 @@ export function generateLocaleGlobalFile(
   })(globalThis);
     `;
 }
-
 
 /**
  * In Angular the locale is referenced by a "normalized" form.

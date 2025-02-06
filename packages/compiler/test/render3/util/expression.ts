@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {AbsoluteSourceSpan} from '@angular/compiler';
@@ -23,7 +23,7 @@ class ExpressionSourceHumanizer extends e.RecursiveAstVisitor implements t.Visit
   // This method is defined to reconcile the type of ExpressionSourceHumanizer
   // since both RecursiveAstVisitor and Visitor define the visit() method in
   // their interfaces.
-  override visit(node: e.AST|t.Node, context?: any) {
+  override visit(node: e.AST | t.Node, context?: any) {
     if (node instanceof e.AST) {
       node.visit(this, context);
     } else {
@@ -87,6 +87,10 @@ class ExpressionSourceHumanizer extends e.RecursiveAstVisitor implements t.Visit
     this.recordAst(ast);
     super.visitPrefixNot(ast, null);
   }
+  override visitTypeofExpression(ast: e.TypeofExpression) {
+    this.recordAst(ast);
+    super.visitTypeofExpression(ast, null);
+  }
   override visitPropertyRead(ast: e.PropertyRead) {
     this.recordAst(ast);
     super.visitPropertyRead(ast, null);
@@ -110,6 +114,14 @@ class ExpressionSourceHumanizer extends e.RecursiveAstVisitor implements t.Visit
   override visitSafeCall(ast: e.SafeCall) {
     this.recordAst(ast);
     super.visitSafeCall(ast, null);
+  }
+  override visitTemplateLiteral(ast: e.TemplateLiteral, context: any): void {
+    this.recordAst(ast);
+    super.visitTemplateLiteral(ast, null);
+  }
+  override visitTemplateLiteralElement(ast: e.TemplateLiteralElement, context: any): void {
+    this.recordAst(ast);
+    super.visitTemplateLiteralElement(ast, null);
   }
 
   visitTemplate(ast: t.Template) {
@@ -136,7 +148,9 @@ class ExpressionSourceHumanizer extends e.RecursiveAstVisitor implements t.Visit
   visitBoundText(ast: t.BoundText) {
     ast.value.visit(this);
   }
-  visitContent(ast: t.Content) {}
+  visitContent(ast: t.Content) {
+    t.visitAll(this, ast.children);
+  }
   visitText(ast: t.Text) {}
   visitUnknownBlock(block: t.UnknownBlock) {}
   visitIcu(ast: t.Icu) {
@@ -182,7 +196,7 @@ class ExpressionSourceHumanizer extends e.RecursiveAstVisitor implements t.Visit
 
   visitForLoopBlock(block: t.ForLoopBlock) {
     block.item.visit(this);
-    t.visitAll(this, Object.values(block.contextVariables));
+    t.visitAll(this, block.contextVariables);
     block.expression.visit(this);
     t.visitAll(this, block.children);
     block.empty?.visit(this);
@@ -200,6 +214,10 @@ class ExpressionSourceHumanizer extends e.RecursiveAstVisitor implements t.Visit
     block.expression?.visit(this);
     block.expressionAlias?.visit(this);
     t.visitAll(this, block.children);
+  }
+
+  visitLetDeclaration(decl: t.LetDeclaration) {
+    decl.value.visit(this);
   }
 }
 

@@ -16,24 +16,24 @@ import {
   signal,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {DocContent, DocViewer} from '@angular/docs-shared';
+import {DocContent, DocViewer} from '@angular/docs';
 import {ActivatedRoute} from '@angular/router';
-import {map} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {ReferenceScrollHandler} from '../services/reference-scroll-handler.service';
 import {API_REFERENCE_DETAILS_PAGE_MEMBERS_CLASS_NAME} from '../constants/api-reference-prerender.constants';
 
-export const CLI_MAIN_CONTENT_SELECTOR = '.adev-reference-cli-content';
+export const CLI_MAIN_CONTENT_SELECTOR = '.docs-reference-cli-content';
 export const CLI_TOC = '.adev-reference-cli-toc';
 
 @Component({
   selector: 'adev-cli-reference-page',
-  standalone: true,
   imports: [DocViewer],
   templateUrl: './cli-reference-details-page.component.html',
   styleUrls: [
     './cli-reference-details-page.component.scss',
     '../api-reference-details-page/api-reference-details-page.component.scss',
   ],
+  providers: [ReferenceScrollHandler],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class CliReferenceDetailsPage implements OnInit {
@@ -44,7 +44,6 @@ export default class CliReferenceDetailsPage implements OnInit {
 
   cardsInnerHtml = signal<string>('');
   mainContentInnerHtml = signal<string>('');
-  membersMarginTopInPx = this.scrollHandler.membersMarginTopInPx;
 
   ngOnInit(): void {
     this.setPageContent();
@@ -52,7 +51,6 @@ export default class CliReferenceDetailsPage implements OnInit {
 
   contentLoaded(): void {
     this.scrollHandler.setupListeners(CLI_TOC);
-    this.scrollHandler.updateMembersMarginTop(CLI_TOC);
   }
 
   // Fetch the content for CLI Reference page based on the active route.

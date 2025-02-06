@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {assertInInjectionContext, DestroyRef, inject} from '@angular/core';
@@ -16,9 +16,9 @@ import {takeUntil} from 'rxjs/operators';
  *
  * @param destroyRef optionally, the `DestroyRef` representing the current context. This can be
  *     passed explicitly to use `takeUntilDestroyed` outside of an [injection
- * context](guide/dependency-injection-context). Otherwise, the current `DestroyRef` is injected.
+ * context](guide/di/dependency-injection-context). Otherwise, the current `DestroyRef` is injected.
  *
- * @developerPreview
+ * @publicApi
  */
 export function takeUntilDestroyed<T>(destroyRef?: DestroyRef): MonoTypeOperatorFunction<T> {
   if (!destroyRef) {
@@ -26,7 +26,7 @@ export function takeUntilDestroyed<T>(destroyRef?: DestroyRef): MonoTypeOperator
     destroyRef = inject(DestroyRef);
   }
 
-  const destroyed$ = new Observable<void>(observer => {
+  const destroyed$ = new Observable<void>((observer) => {
     const unregisterFn = destroyRef!.onDestroy(observer.next.bind(observer));
     return unregisterFn;
   });

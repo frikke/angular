@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 const browserProvidersConf = require('./browser-providers.conf');
@@ -19,7 +19,7 @@ if (!process.env.KARMA_WEB_TEST_MODE && isBazel && process.env.TEST_TARGET.inclu
   process.env.KARMA_WEB_TEST_MODE = 'SL_REQUIRED';
 }
 
-module.exports = function(config) {
+module.exports = function (config) {
   const conf = {
     frameworks: ['jasmine'],
 
@@ -55,11 +55,7 @@ module.exports = function(config) {
 
     customLaunchers: browserProvidersConf.customLaunchers,
 
-    plugins: [
-      'karma-jasmine',
-      'karma-chrome-launcher',
-      'karma-sourcemap-loader',
-    ],
+    plugins: ['karma-jasmine', 'karma-chrome-launcher', 'karma-sourcemap-loader'],
 
     preprocessors: {
       '**/*.js': ['sourcemap'],
@@ -126,7 +122,7 @@ module.exports = function(config) {
       // This slows-down tests/browser restarting and can decrease stability.
       // https://github.com/karma-runner/karma-sauce-launcher/blob/59b0c5c877448e064ad56449cd906743721c6b62/src/launcher/launcher.ts#L72-L79.
       require('saucelabs').default.prototype.downloadJobAsset = () =>
-          Promise.resolve('<FAKE-LOGS>');
+        Promise.resolve('<FAKE-LOGS>');
     }
   }
 
@@ -134,7 +130,7 @@ module.exports = function(config) {
   // the tunnel. We do this because devices are sometimes not able to properly resolve
   // `localhost` or `127.0.0.1` through the SauceLabs tunnel. Using a domain that does not
   // resolve to anything on SauceLabs VMs ensures that such requests are always resolved through
-  // the tunnel, and resolve to the actual tunnel host machine (commonly the CircleCI VMs).
+  // the tunnel, and resolve to the actual tunnel host machine (commonly the GHA VMs).
   // More context can be found in: https://github.com/angular/angular/pull/35171.
   if (process.env.SAUCE_LOCALHOST_ALIAS_DOMAIN) {
     conf.hostname = process.env.SAUCE_LOCALHOST_ALIAS_DOMAIN;
@@ -155,7 +151,8 @@ module.exports = function(config) {
         break;
       default:
         throw new Error(
-            `Unrecognized process.env.KARMA_WEB_TEST_MODE: ${process.env.KARMA_WEB_TEST_MODE}`);
+          `Unrecognized process.env.KARMA_WEB_TEST_MODE: ${process.env.KARMA_WEB_TEST_MODE}`,
+        );
     }
   } else {
     // Run the test locally

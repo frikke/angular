@@ -16,7 +16,7 @@ You don't need to set up your local environment until you're ready.
   <docs-card title="Getting Started" link="Get Started" href="tools/cli/setup-local">
     Install Angular CLI to create and build your first app.
   </docs-card>
-  <docs-card title="Command Reference" link="Learn More" href="cli/commands">
+  <docs-card title="Command Reference" link="Learn More" href="cli">
     Discover CLI commands to make you more productive with Angular.
   </docs-card>
   <docs-card title="Schematics" link="Learn More" href="tools/cli/schematics">
@@ -40,6 +40,12 @@ If neither option is supplied, the flag remains in its default state, as listed 
 ### Array options
 
 Array options can be provided in two forms: `--option value1 value2` or `--option value1 --option value2`.
+
+### Key/value options
+
+Some options like `--define` expect an array of `key=value` pairs as their values.
+Just like array options, key/value options can be provided in two forms:
+`--define 'KEY_1="value1"' KEY_2=true` or `--define 'KEY_1="value1"' --define KEY_2=true`.
 
 ### Relative paths
 

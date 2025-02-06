@@ -3,21 +3,19 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {inject, ɵɵdefineInjectable} from '../di';
-import {INJECTOR, LView} from '../render3/interfaces/view';
+import {Injector, inject, ɵɵdefineInjectable} from '../di';
 import {NgZone} from '../zone';
 
 /**
  * Helper function to schedule a callback to be invoked when a browser becomes idle.
  *
  * @param callback A function to be invoked when a browser becomes idle.
- * @param lView LView that hosts an instance of a defer block.
+ * @param injector injector for the app
  */
-export function onIdle(callback: VoidFunction, lView: LView) {
-  const injector = lView[INJECTOR]!;
+export function onIdle(callback: VoidFunction, injector: Injector) {
   const scheduler = injector.get(IdleScheduler);
   const cleanupFn = () => scheduler.remove(callback);
   scheduler.add(callback);
@@ -32,9 +30,9 @@ export function onIdle(callback: VoidFunction, lView: LView) {
  * overridden/mocked in test environment and picked up by the runtime code.
  */
 const _requestIdleCallback = () =>
-    typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : setTimeout;
+  typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : setTimeout;
 const _cancelIdleCallback = () =>
-    typeof requestIdleCallback !== 'undefined' ? cancelIdleCallback : clearTimeout;
+  typeof requestIdleCallback !== 'undefined' ? cancelIdleCallback : clearTimeout;
 
 /**
  * Helper service to schedule `requestIdleCallback`s for batches of defer blocks,
@@ -46,7 +44,7 @@ export class IdleScheduler {
   executingCallbacks = false;
 
   // Currently scheduled idle callback id.
-  idleId: number|null = null;
+  idleId: number | null = null;
 
   // Set of callbacks to be invoked next.
   current = new Set<VoidFunction>();
@@ -124,7 +122,7 @@ export class IdleScheduler {
   }
 
   /** @nocollapse */
-  static ɵprov = /** @pureOrBreakMyCode */ ɵɵdefineInjectable({
+  static ɵprov = /** @pureOrBreakMyCode */ /* @__PURE__ */ ɵɵdefineInjectable({
     token: IdleScheduler,
     providedIn: 'root',
     factory: () => new IdleScheduler(),

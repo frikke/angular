@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {bootstrapApplication, provideProtractorTestingSupport} from '@angular/platform-browser';
@@ -15,7 +15,5 @@ import {AppComponent} from './app.component';
 syncUrlParamsToForm();
 
 bootstrapApplication(AppComponent, {
-  providers: [
-    provideProtractorTestingSupport(),
-  ],
+  providers: [provideProtractorTestingSupport()],
 }).then(init);

@@ -4,13 +4,13 @@ Property binding in Angular enables you to set values for properties of HTML ele
 
 Use property binding to dynamically set values for properties and attributes. You can do things such as toggle button features, set image paths programmatically, and share values between components.
 
-In this activity, you'll learn to use property binding in templates.
+In this activity, you'll learn how to use property binding in templates.
 
 <hr />
 
 To bind to an element's attribute, wrap the attribute name in square brackets. Here's an example:
 
-```ts
+```angular-html
 <img alt="photo" [src]="imageURL">
 ```
 
@@ -29,9 +29,9 @@ export class AppComponent {
 </docs-step>
 
 <docs-step title="Bind to `contentEditable`" header="app.component.ts" language="ts">
-Next, bind the `contentEditable` attribute of the `div` to the `isEditable` property by using the `[]` syntax.
+Next, bind the `contentEditable` attribute of the `div` to the `isEditable` property by using the <code aria-label="square brackets">[]</code> syntax.
 
-<docs-code highlight="[3]">
+<docs-code highlight="[3]" language="angular-ts">
 @Component({
     ...
     template: `<div [contentEditable]="isEditable"></div>`,
@@ -43,4 +43,4 @@ Next, bind the `contentEditable` attribute of the `div` to the `isEditable` prop
 
 The div is now editable. Nice work 👍
 
-Property binding is one of Angular's many powerful features. If you'd like to learn more checkout [the Angular documention](/guide/templates/property-binding).
+Property binding is one of Angular's many powerful features. If you'd like to learn more checkout [the Angular documentation](guide/templates/property-binding).

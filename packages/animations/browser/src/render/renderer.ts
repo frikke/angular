@@ -3,17 +3,24 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 const ANIMATION_PREFIX = '@';
 const DISABLE_ANIMATIONS_FLAG = '@.disabled';
 
-import {Renderer2, RendererFactory2, RendererStyleFlags2, ɵAnimationRendererType as AnimationRendererType} from '@angular/core';
+import {
+  Renderer2,
+  RendererFactory2,
+  RendererStyleFlags2,
+  ɵAnimationRendererType as AnimationRendererType,
+  type ListenerOptions,
+} from '@angular/core';
 import type {AnimationEngine} from './animation_engine_next';
 
-type AnimationFactoryWithListenerCallback = RendererFactory2&
-    {scheduleListenerCallback: (count: number, fn: (e: any) => any, data: any) => void};
+type AnimationFactoryWithListenerCallback = RendererFactory2 & {
+  scheduleListenerCallback: (count: number, fn: (e: any) => any, data: any) => void;
+};
 
 export class BaseAnimationRenderer implements Renderer2 {
   // We need to explicitly type this property because of an api-extractor bug
@@ -21,8 +28,11 @@ export class BaseAnimationRenderer implements Renderer2 {
   readonly ɵtype: AnimationRendererType.Regular = AnimationRendererType.Regular;
 
   constructor(
-      protected namespaceId: string, public delegate: Renderer2, public engine: AnimationEngine,
-      private _onDestroy?: () => void) {}
+    protected namespaceId: string,
+    public delegate: Renderer2,
+    public engine: AnimationEngine,
+    private _onDestroy?: () => void,
+  ) {}
 
   get data() {
     return this.delegate.data;
@@ -45,7 +55,7 @@ export class BaseAnimationRenderer implements Renderer2 {
     this._onDestroy?.();
   }
 
-  createElement(name: string, namespace?: string|null|undefined) {
+  createElement(name: string, namespace?: string | null | undefined) {
     return this.delegate.createElement(name, namespace);
   }
 
@@ -69,7 +79,13 @@ export class BaseAnimationRenderer implements Renderer2 {
   }
 
   removeChild(parent: any, oldChild: any, isHostElement?: boolean): void {
-    this.engine.onRemove(this.namespaceId, oldChild, this.delegate);
+    // Prior to the changes in #57203, this method wasn't being called at all by `core` if the child
+    // doesn't have a parent. There appears to be some animation-specific downstream logic that
+    // depends on the null check happening before the animation engine. This check keeps the old
+    // behavior while allowing `core` to not have to check for the parent element anymore.
+    if (this.parentNode(oldChild)) {
+      this.engine.onRemove(this.namespaceId, oldChild, this.delegate);
+    }
   }
 
   selectRootElement(selectorOrNode: any, preserveContent?: boolean) {
@@ -84,11 +100,11 @@ export class BaseAnimationRenderer implements Renderer2 {
     return this.delegate.nextSibling(node);
   }
 
-  setAttribute(el: any, name: string, value: string, namespace?: string|null|undefined): void {
+  setAttribute(el: any, name: string, value: string, namespace?: string | null | undefined): void {
     this.delegate.setAttribute(el, name, value, namespace);
   }
 
-  removeAttribute(el: any, name: string, namespace?: string|null|undefined): void {
+  removeAttribute(el: any, name: string, namespace?: string | null | undefined): void {
     this.delegate.removeAttribute(el, name, namespace);
   }
 
@@ -100,11 +116,11 @@ export class BaseAnimationRenderer implements Renderer2 {
     this.delegate.removeClass(el, name);
   }
 
-  setStyle(el: any, style: string, value: any, flags?: RendererStyleFlags2|undefined): void {
+  setStyle(el: any, style: string, value: any, flags?: RendererStyleFlags2 | undefined): void {
     this.delegate.setStyle(el, style, value, flags);
   }
 
-  removeStyle(el: any, style: string, flags?: RendererStyleFlags2|undefined): void {
+  removeStyle(el: any, style: string, flags?: RendererStyleFlags2 | undefined): void {
     this.delegate.removeStyle(el, style, flags);
   }
 
@@ -120,8 +136,13 @@ export class BaseAnimationRenderer implements Renderer2 {
     this.delegate.setValue(node, value);
   }
 
-  listen(target: any, eventName: string, callback: (event: any) => boolean | void): () => void {
-    return this.delegate.listen(target, eventName, callback);
+  listen(
+    target: any,
+    eventName: string,
+    callback: (event: any) => boolean | void,
+    options?: ListenerOptions,
+  ): () => void {
+    return this.delegate.listen(target, eventName, callback, options);
   }
 
   protected disableAnimations(element: any, value: boolean) {
@@ -131,8 +152,12 @@ export class BaseAnimationRenderer implements Renderer2 {
 
 export class AnimationRenderer extends BaseAnimationRenderer implements Renderer2 {
   constructor(
-      public factory: AnimationFactoryWithListenerCallback, namespaceId: string,
-      delegate: Renderer2, engine: AnimationEngine, onDestroy?: () => void) {
+    public factory: AnimationFactoryWithListenerCallback,
+    namespaceId: string,
+    delegate: Renderer2,
+    engine: AnimationEngine,
+    onDestroy?: () => void,
+  ) {
     super(namespaceId, delegate, engine, onDestroy);
     this.namespaceId = namespaceId;
   }
@@ -151,8 +176,11 @@ export class AnimationRenderer extends BaseAnimationRenderer implements Renderer
   }
 
   override listen(
-      target: 'window'|'document'|'body'|any, eventName: string,
-      callback: (event: any) => any): () => void {
+    target: 'window' | 'document' | 'body' | any,
+    eventName: string,
+    callback: (event: any) => any,
+    options?: ListenerOptions,
+  ): () => void {
     if (eventName.charAt(0) == ANIMATION_PREFIX) {
       const element = resolveElementFromTarget(target);
       let name = eventName.slice(1);
@@ -162,16 +190,16 @@ export class AnimationRenderer extends BaseAnimationRenderer implements Renderer
       if (name.charAt(0) != ANIMATION_PREFIX) {
         [name, phase] = parseTriggerCallbackName(name);
       }
-      return this.engine.listen(this.namespaceId, element, name, phase, event => {
+      return this.engine.listen(this.namespaceId, element, name, phase, (event) => {
         const countId = (event as any)['_data'] || -1;
         this.factory.scheduleListenerCallback(countId, callback, event);
       });
     }
-    return this.delegate.listen(target, eventName, callback);
+    return this.delegate.listen(target, eventName, callback, options);
   }
 }
 
-function resolveElementFromTarget(target: 'window'|'document'|'body'|any): any {
+function resolveElementFromTarget(target: 'window' | 'document' | 'body' | any): any {
   switch (target) {
     case 'body':
       return document.body;

@@ -3,21 +3,28 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 import {validateMatchingNode} from '../../hydration/error_handling';
 import {locateNextRNode} from '../../hydration/node_lookup_utils';
 import {isDisconnectedNode, markRNodeAsClaimedByHydration} from '../../hydration/utils';
+import {isDetachedByI18n} from '../../i18n/utils';
 import {assertEqual, assertIndexInRange} from '../../util/assert';
 import {TElementNode, TNode, TNodeType} from '../interfaces/node';
 import {RText} from '../interfaces/renderer_dom';
-import {HEADER_OFFSET, HYDRATION, LView, RENDERER, T_HOST, TView} from '../interfaces/view';
-import {appendChild, createTextNode} from '../node_manipulation';
-import {getBindingIndex, getLView, getTView, isInSkipHydrationBlock, lastNodeWasCreated, setCurrentTNode, wasLastNodeCreated} from '../state';
-
-import {getOrCreateTNode} from './shared';
-
-
+import {HEADER_OFFSET, HYDRATION, LView, RENDERER, TView} from '../interfaces/view';
+import {appendChild} from '../node_manipulation';
+import {createTextNode} from '../dom_node_manipulation';
+import {
+  getBindingIndex,
+  getLView,
+  getTView,
+  isInSkipHydrationBlock,
+  lastNodeWasCreated,
+  setCurrentTNode,
+  wasLastNodeCreated,
+} from '../state';
+import {getOrCreateTNode} from '../tnode_manipulation';
 
 /**
  * Create static text node
@@ -33,14 +40,16 @@ export function ɵɵtext(index: number, value: string = ''): void {
   const adjustedIndex = index + HEADER_OFFSET;
 
   ngDevMode &&
-      assertEqual(
-          getBindingIndex(), tView.bindingStartIndex,
-          'text nodes should be created before any bindings');
+    assertEqual(
+      getBindingIndex(),
+      tView.bindingStartIndex,
+      'text nodes should be created before any bindings',
+    );
   ngDevMode && assertIndexInRange(lView, adjustedIndex);
 
-  const tNode = tView.firstCreatePass ?
-      getOrCreateTNode(tView, adjustedIndex, TNodeType.Text, value, null) :
-      tView.data[adjustedIndex] as TElementNode;
+  const tNode = tView.firstCreatePass
+    ? getOrCreateTNode(tView, adjustedIndex, TNodeType.Text, value, null)
+    : (tView.data[adjustedIndex] as TElementNode);
 
   const textNative = _locateOrCreateTextNode(tView, lView, tNode, value, index);
   lView[adjustedIndex] = textNative;
@@ -53,21 +62,34 @@ export function ɵɵtext(index: number, value: string = ''): void {
   setCurrentTNode(tNode, false);
 }
 
-let _locateOrCreateTextNode: typeof locateOrCreateTextNodeImpl =
-    (tView: TView, lView: LView, tNode: TNode, value: string, index: number) => {
-      lastNodeWasCreated(true);
-      return createTextNode(lView[RENDERER], value);
-    };
+let _locateOrCreateTextNode: typeof locateOrCreateTextNodeImpl = (
+  tView: TView,
+  lView: LView,
+  tNode: TNode,
+  value: string,
+  index: number,
+) => {
+  lastNodeWasCreated(true);
+  return createTextNode(lView[RENDERER], value);
+};
 
 /**
  * Enables hydration code path (to lookup existing elements in DOM)
  * in addition to the regular creation mode of text nodes.
  */
 function locateOrCreateTextNodeImpl(
-    tView: TView, lView: LView, tNode: TNode, value: string, index: number): RText {
+  tView: TView,
+  lView: LView,
+  tNode: TNode,
+  value: string,
+  index: number,
+): RText {
   const hydrationInfo = lView[HYDRATION];
   const isNodeCreationMode =
-      !hydrationInfo || isInSkipHydrationBlock() || isDisconnectedNode(hydrationInfo, index);
+    !hydrationInfo ||
+    isInSkipHydrationBlock() ||
+    isDetachedByI18n(tNode) ||
+    isDisconnectedNode(hydrationInfo, index);
   lastNodeWasCreated(isNodeCreationMode);
 
   // Regular creation mode.

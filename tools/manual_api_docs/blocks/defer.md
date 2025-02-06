@@ -1,9 +1,9 @@
-A type of [block](api/core/defer) that can be used to defer load the JavaScript for components,
+A type of [block](api/core/@defer) that can be used to defer load the JavaScript for components,
 directives and pipes used inside a component template.
 
 ## Syntax
 
-```html
+```angular-html
 @defer ( on <trigger>; when <condition>; prefetch on <trigger>; prefetch when <condition> ) {
   <!-- deferred template fragment -->
   <calendar-cmp />
@@ -15,7 +15,7 @@ directives and pipes used inside a component template.
   <img alt="loading image" src="loading.gif" />
 } @error {
   <!-- error template fragment -->
-  <p>An loading error occured</p>
+  <p>An loading error occurred</p>
 }
 ```
 
@@ -54,7 +54,7 @@ Configures prefetching of the defer block used in the `@defer` parameters, but d
 rendering. Rendering is handled by the standard `on` and `when` conditions. Separate multiple
 prefetch configurations with a semicolon.
 
-```html
+```angular-html
 @defer (prefetch on <trigger>; prefetch when <condition>) {
   <!-- deferred template fragment -->
 }

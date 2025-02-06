@@ -140,7 +140,7 @@ export class AppModule { ... }
 * Always import the `HttpClientInMemoryWebApiModule` _after_ the `HttpClientModule`
 to ensure that the in-memory backend provider supersedes the Angular version.
 
-* You can setup the in-memory web api within a lazy loaded feature module by calling the `.forFeature` method as you would `.forRoot`.
+* You can set up the in-memory web api within a lazy loaded feature module by calling the `.forFeature` method as you would `.forRoot`.
 
 * In production, you want HTTP requests to go to the real server and probably have no need for the _in-memory_ provider.
 CLI-based apps can exclude the provider in production builds like this:
@@ -155,11 +155,11 @@ CLI-based apps can exclude the provider in production builds like this:
 
 # Examples
 The [tests](https://github.com/angular/angular/blob/main/packages/misc/angular-in-memory-web-api/test)
-are a good place to learn how to setup and use this in-memory web api library.
+are a good place to learn how to set up and use this in-memory web api library.
 
-See also the example source code in the official Angular.io documentation such as the
-[HttpClient](https://angular.io/guide/understanding-communicating-with-http) guide and the
-[Tour of Heroes](https://angular.io/tutorial/tour-of-heroes/toh-pt6).
+See also the example source code in the official Angular.dev documentation such as the
+[HttpClient](https://angular.dev/guide/http) guide and the
+[Tour of Heroes](https://angular.dev/tutorials/first-app/14-http).
 
 # Advanced Features
 Some features are not readily apparent in the basic usage described above.

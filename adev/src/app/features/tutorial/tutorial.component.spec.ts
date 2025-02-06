@@ -6,43 +6,35 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {DOCS_VIEWER_SELECTOR, DocViewer, WINDOW} from '@angular/docs-shared';
+import {DOCS_VIEWER_SELECTOR, DocViewer, WINDOW, TutorialConfig, TutorialType} from '@angular/docs';
 
 import {Component, Input, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {RouterTestingModule} from '@angular/router/testing';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {provideRouter} from '@angular/router';
 import {of} from 'rxjs';
 
-import {
-  EMBEDDED_EDITOR_SELECTOR,
-  EmbeddedEditor,
-} from '../../embedded-editor/embedded-editor.component';
-import {EmbeddedTutorialManager} from '../../embedded-editor/embedded-tutorial-manager.service';
-import {NodeRuntimeSandbox} from '../../embedded-editor/node-runtime-sandbox.service';
+import {EMBEDDED_EDITOR_SELECTOR, EmbeddedEditor, EmbeddedTutorialManager} from '../../editor';
+import {NodeRuntimeSandbox} from '../../editor/node-runtime-sandbox.service';
 
 import {mockAsyncProvider} from '../../core/services/inject-async';
 import Tutorial from './tutorial.component';
-import {TutorialConfig} from '../../../../../../scripts/tutorials/tutorials-types';
-import {TutorialType} from '../../../../../../scripts/tutorials/utils/web-constants';
 
 @Component({
   selector: EMBEDDED_EDITOR_SELECTOR,
   template: '<div>FakeEmbeddedEditor</div>',
-  standalone: true,
 })
 class FakeEmbeddedEditor {}
 
 @Component({
   selector: DOCS_VIEWER_SELECTOR,
   template: '<div>FakeDocsViewer</div>',
-  standalone: true,
 })
 class FakeDocViewer {
   @Input('documentFilePath') documentFilePath: string | undefined;
 }
 
-// TODO: export this class, it's a helpfull mock we could you on other tests.
+// TODO: export this class, it's a helpful mock we could you on other tests.
 class FakeNodeRuntimeSandbox {
   loadingStep = signal(0);
   previewUrl$ = of();
@@ -97,8 +89,10 @@ describe('Tutorial', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [Tutorial, RouterTestingModule, EmbeddedEditor, DocViewer, NoopAnimationsModule],
+      imports: [Tutorial, EmbeddedEditor, DocViewer],
       providers: [
+        provideNoopAnimations(),
+        provideRouter([]),
         {
           provide: WINDOW,
           useValue: fakeWindow,

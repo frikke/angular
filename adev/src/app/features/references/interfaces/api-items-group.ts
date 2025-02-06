@@ -10,6 +10,6 @@ import {ApiItem} from './api-item';
 
 export interface ApiItemsGroup {
   title: string;
+  id: string;
   items: ApiItem[];
-  isFeatured?: boolean;
 }

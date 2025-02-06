@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Injector} from '../di/injector';
@@ -12,7 +12,7 @@ import {Type} from '../interface/type';
 import {ComponentRef} from '../linker/component_factory';
 
 import {ComponentFactory} from './component_ref';
-import {getComponentDef} from './definition';
+import {getComponentDef} from './def_getters';
 import {assertComponentDef} from './errors';
 
 /**
@@ -27,7 +27,7 @@ import {assertComponentDef} from './errors';
  * Note: the example uses standalone components, but the function can also be used for
  * non-standalone components (declared in an NgModule) as well.
  *
- * ```typescript
+ * ```angular-ts
  * @Component({
  *   standalone: true,
  *   template: `Hello {{ name }}!`
@@ -62,31 +62,40 @@ import {assertComponentDef} from './errors';
  *
  * @param component Component class reference.
  * @param options Set of options to use:
- *  * `environmentInjector`: An `EnvironmentInjector` instance to be used for the component, see
- * additional info about it [here](/guide/standalone-components#environment-injectors).
+ *  * `environmentInjector`: An `EnvironmentInjector` instance to be used for the component.
  *  * `hostElement` (optional): A DOM node that should act as a host node for the component. If not
  * provided, Angular creates one based on the tag name used in the component selector (and falls
  * back to using `div` if selector doesn't have tag name info).
  *  * `elementInjector` (optional): An `ElementInjector` instance, see additional info about it
- * [here](/guide/hierarchical-dependency-injection#elementinjector).
+ * [here](guide/di/hierarchical-dependency-injection#elementinjector).
  *  * `projectableNodes` (optional): A list of DOM nodes that should be projected through
- *                      [`<ng-content>`](api/core/ng-content) of the new component instance.
+ * [`<ng-content>`](api/core/ng-content) of the new component instance, e.g.,
+ * `[[element1, element2]]`: projects `element1` and `element2` into the same `<ng-content>`.
+ * `[[element1, element2], [element3]]`: projects `element1` and `element2` into one `<ng-content>`,
+ * and `element3` into a separate `<ng-content>`.
  * @returns ComponentRef instance that represents a given Component.
  *
  * @publicApi
  */
-export function createComponent<C>(component: Type<C>, options: {
-  environmentInjector: EnvironmentInjector,
-  hostElement?: Element,
-  elementInjector?: Injector,
-  projectableNodes?: Node[][],
-}): ComponentRef<C> {
+export function createComponent<C>(
+  component: Type<C>,
+  options: {
+    environmentInjector: EnvironmentInjector;
+    hostElement?: Element;
+    elementInjector?: Injector;
+    projectableNodes?: Node[][];
+  },
+): ComponentRef<C> {
   ngDevMode && assertComponentDef(component);
   const componentDef = getComponentDef(component)!;
   const elementInjector = options.elementInjector || getNullInjector();
   const factory = new ComponentFactory<C>(componentDef);
   return factory.create(
-      elementInjector, options.projectableNodes, options.hostElement, options.environmentInjector);
+    elementInjector,
+    options.projectableNodes,
+    options.hostElement,
+    options.environmentInjector,
+  );
 }
 
 /**
@@ -108,14 +117,15 @@ export interface ComponentMirror<C> {
    * The inputs of the component.
    */
   get inputs(): ReadonlyArray<{
-    readonly propName: string,
-    readonly templateName: string,
-    readonly transform?: (value: any) => any,
+    readonly propName: string;
+    readonly templateName: string;
+    readonly transform?: (value: any) => any;
+    readonly isSignal: boolean;
   }>;
   /**
    * The outputs of the component.
    */
-  get outputs(): ReadonlyArray<{readonly propName: string, readonly templateName: string}>;
+  get outputs(): ReadonlyArray<{readonly propName: string; readonly templateName: string}>;
   /**
    * Selector for all <ng-content> elements in the component.
    */
@@ -140,7 +150,7 @@ export interface ComponentMirror<C> {
  * The example below demonstrates how to use the function and how the fields
  * of the returned object map to the component metadata.
  *
- * ```typescript
+ * ```angular-ts
  * @Component({
  *   standalone: true,
  *   selector: 'foo-component',
@@ -171,7 +181,7 @@ export interface ComponentMirror<C> {
  *
  * @publicApi
  */
-export function reflectComponentType<C>(component: Type<C>): ComponentMirror<C>|null {
+export function reflectComponentType<C>(component: Type<C>): ComponentMirror<C> | null {
   const componentDef = getComponentDef(component);
   if (!componentDef) return null;
 
@@ -184,13 +194,14 @@ export function reflectComponentType<C>(component: Type<C>): ComponentMirror<C>|
       return factory.componentType;
     },
     get inputs(): ReadonlyArray<{
-      propName: string,
-      templateName: string,
-      transform?: (value: any) => any,
+      propName: string;
+      templateName: string;
+      transform?: (value: any) => any;
+      isSignal: boolean;
     }> {
       return factory.inputs;
     },
-    get outputs(): ReadonlyArray<{propName: string, templateName: string}> {
+    get outputs(): ReadonlyArray<{propName: string; templateName: string}> {
       return factory.outputs;
     },
     get ngContentSelectors(): ReadonlyArray<string> {

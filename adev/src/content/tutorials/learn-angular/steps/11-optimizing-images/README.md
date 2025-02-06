@@ -16,7 +16,6 @@ In order to leverage the `NgOptimizedImage` directive, first import it from the 
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
-  standalone: true,
   imports: [NgOptimizedImage],
   ...
 })
@@ -28,11 +27,10 @@ import { NgOptimizedImage } from '@angular/common';
 
 To enable the `NgOptimizedImage` directive, swap out the `src` attribute for `ngSrc`. This applies for both static image sources (i.e., `src`) and dynamic image sources (i.e., `[src]`).
 
-<docs-code language="ts" highlight="[[9], [13]]">
+<docs-code language="angular-ts" highlight="[[9], [13]]">
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
-  standalone: true,
   template: `
     ...
     <li>
@@ -42,7 +40,7 @@ import { NgOptimizedImage } from '@angular/common';
     <li>
       Dynamic Image:
       <img [ngSrc]="logoUrl" [alt]="logoAlt" width="32" height="32" />
-    </li>`,
+    </li>
     ...
   `,
   imports: [NgOptimizedImage],
@@ -57,7 +55,7 @@ Note that in the above code example, each image has both `width` and `height` at
 
 In situations where you can't or don't want to specify a static `height` and `width` for images, you can use [the `fill` attribute](https://web.dev/articles/cls) to tell the image to act like a "background image", filling its containing element:
 
-```ts
+```angular-html
 <div class="image-container"> //Container div has 'position: "relative"'
   <img ngSrc="www.example.com/image.png" fill />
 </div>
@@ -69,7 +67,7 @@ Note: For the `fill` image to render properly, its parent element must be styled
 
 <docs-step title="Prioritize important images">
 
-One of the most important optimizations for loading performance is to prioritize any image which might be the ["LCP element"(https://web.dev/articles/optimize-lcp)], which is the largest on-screen graphical element when the page loads. To optimize your loading times, make sure to add the `priority` attribute to your "hero image" or any other images that you think could be an LCP element.
+One of the most important optimizations for loading performance is to prioritize any image which might be the ["LCP element"](https://web.dev/articles/optimize-lcp), which is the largest on-screen graphical element when the page loads. To optimize your loading times, make sure to add the `priority` attribute to your "hero image" or any other images that you think could be an LCP element.
 
 ```ts
 <img ngSrc="www.example.com/image.png" height="600" width="800" priority />
@@ -85,9 +83,10 @@ One of the most important optimizations for loading performance is to prioritize
 providers: [
   provideImgixLoader('https://my.base.url/'),
 ]
+```
 
-// ...
-// Final URL will be 'https://my.base.url/image.png'
+Final URL will be 'https://my.base.url/image.png'
+```angular-html
 <img ngSrc="image.png" height="600" width="800" />
 ```
 

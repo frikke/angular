@@ -3,11 +3,17 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Ng1Token} from '../../src/common/src/angular1';
-import {compileFactory, injectorFactory, parseFactory, rootScopeFactory, setTempInjectorRef} from '../src/angular1_providers';
+import {
+  compileFactory,
+  injectorFactory,
+  parseFactory,
+  rootScopeFactory,
+  setTempInjectorRef,
+} from '../src/angular1_providers';
 
 describe('upgrade angular1_providers', () => {
   describe('compileFactory', () => {
@@ -42,7 +48,7 @@ describe('upgrade angular1_providers', () => {
       const mockInjector = {get: () => undefined, has: () => false};
       setTempInjectorRef(mockInjector);
       injectorFactory();
-      expect(injectorFactory).toThrowError();  // ...because it has been unset
+      expect(injectorFactory).toThrowError(); // ...because it has been unset
     });
   });
 

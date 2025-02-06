@@ -34,7 +34,6 @@ You can read more by following the links associated with the package names below
 | [Vercel](https://vercel.com/solutions/angular)                    | [`vercel init angular`](https://github.com/vercel/vercel/tree/main/examples/angular) |
 | [Netlify](https://www.netlify.com)                                | [`ng add @netlify-builder/deploy`](https://npmjs.org/package/@netlify-builder/deploy)       |
 | [GitHub pages](https://pages.github.com)                          | [`ng add angular-cli-ghpages`](https://npmjs.org/package/angular-cli-ghpages)               |
-| [NPM](https://npmjs.com)                                          | [`ng add ngx-deploy-npm`](https://npmjs.org/package/ngx-deploy-npm)                         |
 | [Amazon Cloud S3](https://aws.amazon.com/s3/?nc2=h_ql_prod_st_s3) | [`ng add @jefiozie/ngx-aws-deploy`](https://www.npmjs.com/package/@jefiozie/ngx-aws-deploy) |
 
 If you're deploying to a self-managed server or there's no builder for your favorite cloud platform, you can either [create a builder](tools/cli/cli-builder) that allows you to use the `ng deploy` command, or read through this guide to learn how to manually deploy your application.
@@ -82,7 +81,7 @@ For "real" 404 pages such as `http://my-app.test/does-not-exist`, the server doe
 
 ### Requesting data from a different server (CORS)
 
-Web developers may encounter a [*cross-origin resource sharing*](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS "Cross-origin resource sharing") error when making a network request to a server other than the application's own host server.
+Web developers may encounter a [*cross-origin resource sharing*](https://developer.mozilla.org/docs/Web/HTTP/CORS "Cross-origin resource sharing") error when making a network request to a server other than the application's own host server.
 Browsers forbid such requests unless the server explicitly permits them.
 
 There isn't anything Angular or the client application can do about these errors.
@@ -96,7 +95,7 @@ Read about how to enable CORS for specific servers at [enable-cors.org](https://
 | Features                                                           | Details                                                                                       |
 |:---                                                                |:---                                                                                           |
 | [Ahead-of-Time (AOT) Compilation](tools/cli/aot-compiler)          | Pre-compiles Angular component templates.                                                     |
-| [Production mode](tools/cli/deployment#production-mode-at-runtime) | Optimizes the application for the best runtime performance                                    |
+| [Production mode](tools/cli/deployment#development-only-features) | Optimizes the application for the best runtime performance                                    |
 | Bundling                                                           | Concatenates your many application and library files into a minimum number of deployed files. |
 | Minification                                                       | Removes excess whitespace, comments, and optional tokens.                                     |
 | Mangling                                                           | Renames functions, classes, and variables to use shorter, arbitrary identifiers.              |
@@ -111,7 +110,7 @@ at runtime which enables:
 
 * Extra safety checks such as [`expression-changed-after-checked`](errors/NG0100) detection.
 * More detailed error messages.
-* Additional debugging utilities such as the global `ng` variable and [Angular DevTools](tools/devtools) support.
+* Additional debugging utilities such as the global `ng` variable with [debugging functions](api#core-global) and [Angular DevTools](tools/devtools) support.
 
 These features are helpful during development, but they require extra code in the app, which is
 undesirable in production. To ensure these features do not negatively impact bundle size for end users, Angular CLI

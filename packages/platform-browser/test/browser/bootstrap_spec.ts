@@ -3,15 +3,51 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {animate, style, transition, trigger} from '@angular/animations';
 import {DOCUMENT, isPlatformBrowser, ɵgetDOM as getDOM} from '@angular/common';
-import {ANIMATION_MODULE_TYPE, APP_INITIALIZER, Compiler, Component, createPlatformFactory, CUSTOM_ELEMENTS_SCHEMA, Directive, ErrorHandler, importProvidersFrom, Inject, inject as _inject, InjectionToken, Injector, LOCALE_ID, NgModule, NgModuleRef, NgZone, OnDestroy, PLATFORM_ID, PLATFORM_INITIALIZER, Provider, Sanitizer, StaticProvider, Testability, TestabilityRegistry, TransferState, Type, VERSION} from '@angular/core';
-import {ApplicationRef, destroyPlatform, provideZoneChangeDetection} from '@angular/core/src/application_ref';
+import {
+  ANIMATION_MODULE_TYPE,
+  APP_INITIALIZER,
+  Compiler,
+  Component,
+  createPlatformFactory,
+  CUSTOM_ELEMENTS_SCHEMA,
+  Directive,
+  ErrorHandler,
+  importProvidersFrom,
+  Inject,
+  inject as _inject,
+  InjectionToken,
+  Injector,
+  LOCALE_ID,
+  NgModule,
+  NgModuleRef,
+  NgZone,
+  OnDestroy,
+  PLATFORM_ID,
+  PLATFORM_INITIALIZER,
+  Provider,
+  provideZoneChangeDetection,
+  Sanitizer,
+  StaticProvider,
+  Testability,
+  TestabilityRegistry,
+  TransferState,
+  Type,
+  VERSION,
+  EnvironmentProviders,
+} from '@angular/core';
+import {ApplicationRef} from '@angular/core/src/application/application_ref';
 import {Console} from '@angular/core/src/console';
 import {ComponentRef} from '@angular/core/src/linker/component_factory';
+import {
+  createOrReusePlatformInjector,
+  destroyPlatform,
+  providePlatformInitializer,
+} from '@angular/core/src/platform/platform';
 import {inject, TestBed} from '@angular/core/testing';
 import {Log} from '@angular/core/testing/src/testing_internal';
 import {BrowserModule} from '@angular/platform-browser';
@@ -21,27 +57,44 @@ import {expect} from '@angular/platform-browser/testing/src/matchers';
 
 import {bootstrapApplication} from '../../src/browser';
 
-@Component({selector: 'non-existent', template: ''})
-class NonExistentComp {
-}
+@Component({
+  selector: 'non-existent',
+  template: '',
+  standalone: false,
+})
+class NonExistentComp {}
 
-@Component({selector: 'hello-app', template: '{{greeting}} world!'})
+@Component({
+  selector: 'hello-app',
+  template: '{{greeting}} world!',
+  standalone: false,
+})
 class HelloRootCmp {
   greeting: string;
+
   constructor() {
     this.greeting = 'hello';
   }
 }
 
-@Component({selector: 'hello-app-2', template: '{{greeting}} world, again!'})
+@Component({
+  selector: 'hello-app-2',
+  template: '{{greeting}} world, again!',
+  standalone: false,
+})
 class HelloRootCmp2 {
   greeting: string;
+
   constructor() {
     this.greeting = 'hello';
   }
 }
 
-@Component({selector: 'hello-app', template: ''})
+@Component({
+  selector: 'hello-app',
+  template: '',
+  standalone: false,
+})
 class HelloRootCmp3 {
   appBinding: string;
 
@@ -50,7 +103,11 @@ class HelloRootCmp3 {
   }
 }
 
-@Component({selector: 'hello-app', template: ''})
+@Component({
+  selector: 'hello-app',
+  template: '',
+  standalone: false,
+})
 class HelloRootCmp4 {
   appRef: ApplicationRef;
 
@@ -59,13 +116,20 @@ class HelloRootCmp4 {
   }
 }
 
-@Directive({selector: 'hello-app'})
-class HelloRootDirectiveIsNotCmp {
-}
+@Directive({
+  selector: 'hello-app',
+  standalone: false,
+})
+class HelloRootDirectiveIsNotCmp {}
 
-@Component({selector: 'hello-app', template: ''})
+@Component({
+  selector: 'hello-app',
+  template: '',
+  standalone: false,
+})
 class HelloOnDestroyTickCmp implements OnDestroy {
   appRef: ApplicationRef;
+
   constructor(@Inject(ApplicationRef) appRef: ApplicationRef) {
     this.appRef = appRef;
   }
@@ -75,43 +139,47 @@ class HelloOnDestroyTickCmp implements OnDestroy {
   }
 }
 
-@Component({selector: 'hello-app', template: '<some-el [someProp]="true">hello world!</some-el>'})
-class HelloCmpUsingCustomElement {
-}
+@Component({
+  selector: 'hello-app',
+  template: '<some-el [someProp]="true">hello world!</some-el>',
+  standalone: false,
+})
+class HelloCmpUsingCustomElement {}
 
 class MockConsole {
   res: any[][] = [];
+
   error(...s: any[]): void {
     this.res.push(s);
   }
 }
 
-
 class DummyConsole implements Console {
   public warnings: string[] = [];
 
   log(message: string) {}
+
   warn(message: string) {
     this.warnings.push(message);
   }
 }
 
-
 function bootstrap(
-    cmpType: any, providers: Provider[] = [], platformProviders: StaticProvider[] = [],
-    imports: Type<any>[] = []): Promise<any> {
+  cmpType: any,
+  providers: Provider[] = [],
+  platformProviders: StaticProvider[] = [],
+  imports: Type<any>[] = [],
+): Promise<any> {
   @NgModule({
     imports: [BrowserModule, ...imports],
     declarations: [cmpType],
     bootstrap: [cmpType],
     providers: providers,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   })
-  class TestModule {
-  }
+  class TestModule {}
   return platformBrowserDynamic(platformProviders).bootstrapModule(TestModule);
 }
-
 
 describe('bootstrap factory method', () => {
   let el: HTMLElement;
@@ -154,6 +222,7 @@ describe('bootstrap factory method', () => {
 
   describe('bootstrapApplication', () => {
     const NAME = new InjectionToken<string>('name');
+
     @Component({
       standalone: true,
       selector: 'hello-app',
@@ -184,6 +253,7 @@ describe('bootstrap factory method', () => {
     @Component({
       selector: 'hello-app-2',
       template: 'Hello from {{ name }}!',
+      standalone: false,
     })
     class NonStandaloneComp {
       name = 'NonStandaloneComp';
@@ -192,8 +262,7 @@ describe('bootstrap factory method', () => {
     @NgModule({
       declarations: [NonStandaloneComp],
     })
-    class NonStandaloneCompModule {
-    }
+    class NonStandaloneCompModule {}
 
     it('should work for simple standalone components', async () => {
       await bootstrapApplication(SimpleComp);
@@ -248,25 +317,24 @@ describe('bootstrap factory method', () => {
       expect(el2.innerText).toBe('Hello from Updated SimpleComp2!');
     });
 
-    it('should allow bootstrapping multiple standalone components within the same app',
-       async () => {
-         const appRef = await bootstrapApplication(SimpleComp);
-         appRef.bootstrap(SimpleComp2);
+    it('should allow bootstrapping multiple standalone components within the same app', async () => {
+      const appRef = await bootstrapApplication(SimpleComp);
+      appRef.bootstrap(SimpleComp2);
 
-         expect(el.innerText).toBe('Hello from SimpleComp!');
-         expect(el2.innerText).toBe('Hello from SimpleComp2!');
+      expect(el.innerText).toBe('Hello from SimpleComp!');
+      expect(el2.innerText).toBe('Hello from SimpleComp2!');
 
-         // Update name in both components.
-         appRef.components[0].instance.name = 'Updated SimpleComp';
-         appRef.components[1].instance.name = 'Updated SimpleComp2';
+      // Update name in both components.
+      appRef.components[0].instance.name = 'Updated SimpleComp';
+      appRef.components[1].instance.name = 'Updated SimpleComp2';
 
-         // Run change detection for the app.
-         appRef.tick();
+      // Run change detection for the app.
+      appRef.tick();
 
-         // Expect both components to be updated, since they belong to the same app.
-         expect(el.innerText).toBe('Hello from Updated SimpleComp!');
-         expect(el2.innerText).toBe('Hello from Updated SimpleComp2!');
-       });
+      // Expect both components to be updated, since they belong to the same app.
+      expect(el.innerText).toBe('Hello from Updated SimpleComp!');
+      expect(el2.innerText).toBe('Hello from Updated SimpleComp2!');
+    });
 
     it('should allow bootstrapping non-standalone components within the same app', async () => {
       const appRef = await bootstrapApplication(SimpleComp);
@@ -291,10 +359,11 @@ describe('bootstrap factory method', () => {
     });
 
     it('should throw when trying to bootstrap a non-standalone component', async () => {
-      const msg = 'NG0907: The NonStandaloneComp component is not marked as standalone, ' +
-          'but Angular expects to have a standalone component here. Please make sure the ' +
-          'NonStandaloneComp component has the `standalone: true` flag in the decorator.';
-      let bootstrapError: string|null = null;
+      const msg =
+        'NG0907: The NonStandaloneComp component is not marked as standalone, ' +
+        'but Angular expects to have a standalone component here. Please make sure the ' +
+        'NonStandaloneComp component has the `standalone: true` flag in the decorator.';
+      let bootstrapError: string | null = null;
 
       try {
         await bootstrapApplication(NonStandaloneComp);
@@ -310,13 +379,12 @@ describe('bootstrap factory method', () => {
         standalone: true,
         selector: '[dir]',
       })
-      class StandaloneDirective {
-      }
+      class StandaloneDirective {}
 
-      const msg =  //
-          'NG0906: The StandaloneDirective is not an Angular component, ' +
-          'make sure it has the `@Component` decorator.';
-      let bootstrapError: string|null = null;
+      const msg = //
+        'NG0906: The StandaloneDirective is not an Angular component, ' +
+        'make sure it has the `@Component` decorator.';
+      let bootstrapError: string | null = null;
 
       try {
         await bootstrapApplication(StandaloneDirective);
@@ -329,10 +397,10 @@ describe('bootstrap factory method', () => {
 
     it('should throw when trying to bootstrap a non-annotated class', async () => {
       class NonAnnotatedClass {}
-      const msg =  //
-          'NG0906: The NonAnnotatedClass is not an Angular component, ' +
-          'make sure it has the `@Component` decorator.';
-      let bootstrapError: string|null = null;
+      const msg = //
+        'NG0906: The NonAnnotatedClass is not an Angular component, ' +
+        'make sure it has the `@Component` decorator.';
+      let bootstrapError: string | null = null;
 
       try {
         await bootstrapApplication(NonAnnotatedClass);
@@ -344,7 +412,7 @@ describe('bootstrap factory method', () => {
     });
 
     it('should have the TransferState token available', async () => {
-      let state: TransferState|undefined;
+      let state: TransferState | undefined;
       @Component({
         selector: 'hello-app',
         standalone: true,
@@ -369,8 +437,11 @@ describe('bootstrap factory method', () => {
       }
 
       bootstrapApplication(SimpleComp, {
-        providers: [importProvidersFrom(ErrorModule)]
-      }).then(() => done.fail('Expected bootstrap promised to be rejected'), () => done());
+        providers: [importProvidersFrom(ErrorModule)],
+      }).then(
+        () => done.fail('Expected bootstrap promised to be rejected'),
+        () => done(),
+      );
     });
 
     describe('with animations', () => {
@@ -378,13 +449,15 @@ describe('bootstrap factory method', () => {
         standalone: true,
         selector: 'hello-app',
         template:
-            '<div @myAnimation (@myAnimation.start)="onStart($event)">Hello from AnimationCmp!</div>',
-        animations:
-            [trigger('myAnimation', [transition('void => *', [style({opacity: 1}), animate(5)])])],
+          '<div @myAnimation (@myAnimation.start)="onStart($event)">Hello from AnimationCmp!</div>',
+        animations: [
+          trigger('myAnimation', [transition('void => *', [style({opacity: 1}), animate(5)])]),
+        ],
       })
       class AnimationCmp {
         renderer = _inject(ANIMATION_MODULE_TYPE, {optional: true}) ?? 'not found';
         startEvent?: {};
+
         onStart(event: {}) {
           this.startEvent = event;
         }
@@ -397,7 +470,7 @@ describe('bootstrap factory method', () => {
         const cmp = appRef.components[0].instance;
 
         // Wait until animation is completed.
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
         expect(cmp.renderer).toBe('BrowserAnimations');
         expect(cmp.startEvent.triggerName).toEqual('myAnimation');
@@ -413,7 +486,7 @@ describe('bootstrap factory method', () => {
         const cmp = appRef.components[0].instance;
 
         // Wait until animation is completed.
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
         expect(cmp.renderer).toBe('NoopAnimations');
         expect(cmp.startEvent.triggerName).toEqual('myAnimation');
@@ -423,50 +496,50 @@ describe('bootstrap factory method', () => {
       });
     });
 
-    it('initializes modules inside the NgZone when using `provideZoneChangeDetection`',
-       async () => {
-         let moduleInitialized = false;
-         @NgModule({})
-         class SomeModule {
-           constructor() {
-             expect(NgZone.isInAngularZone()).toBe(true);
-             moduleInitialized = true;
-           }
-         }
-         @Component({
-           template: '',
-           selector: 'hello-app',
-           imports: [SomeModule],
-           standalone: true,
-         })
-         class AnimationCmp {
-         }
+    it('initializes modules inside the NgZone when using `provideZoneChangeDetection`', async () => {
+      let moduleInitialized = false;
+      @NgModule({})
+      class SomeModule {
+        constructor() {
+          expect(NgZone.isInAngularZone()).toBe(true);
+          moduleInitialized = true;
+        }
+      }
+      @Component({
+        template: '',
+        selector: 'hello-app',
+        imports: [SomeModule],
+        standalone: true,
+      })
+      class AnimationCmp {}
 
-         await bootstrapApplication(AnimationCmp, {
-           providers: [provideZoneChangeDetection({eventCoalescing: true})],
-         });
-         expect(moduleInitialized).toBe(true);
-       });
-  });
-
-  it('should throw if bootstrapped Directive is not a Component', done => {
-    const logger = new MockConsole();
-    const errorHandler = new ErrorHandler();
-    (errorHandler as any)._console = logger as any;
-    bootstrap(HelloRootDirectiveIsNotCmp, [
-      {provide: ErrorHandler, useValue: errorHandler}
-    ]).catch((error: Error) => {
-      expect(error).toEqual(
-          new Error(`HelloRootDirectiveIsNotCmp cannot be used as an entry component.`));
-      done();
+      await bootstrapApplication(AnimationCmp, {
+        providers: [provideZoneChangeDetection({eventCoalescing: true})],
+      });
+      expect(moduleInitialized).toBe(true);
     });
   });
 
+  it('should throw if bootstrapped Directive is not a Component', (done) => {
+    const logger = new MockConsole();
+    const errorHandler = new ErrorHandler();
+    (errorHandler as any)._console = logger as any;
+    bootstrap(HelloRootDirectiveIsNotCmp, [{provide: ErrorHandler, useValue: errorHandler}]).catch(
+      (error: Error) => {
+        expect(error).toEqual(
+          new Error(`HelloRootDirectiveIsNotCmp cannot be used as an entry component.`),
+        );
+        done();
+      },
+    );
+  });
+
   it('should have the TransferState token available in NgModule bootstrap', async () => {
-    let state: TransferState|undefined;
+    let state: TransferState | undefined;
     @Component({
       selector: 'hello-app',
       template: '...',
+      standalone: false,
     })
     class NonStandaloneComponent {
       constructor() {
@@ -479,24 +552,25 @@ describe('bootstrap factory method', () => {
   });
 
   it('should retrieve sanitizer', inject([Injector], (injector: Injector) => {
-       const sanitizer: Sanitizer|null = injector.get(Sanitizer, null);
-       // We don't want to have sanitizer in DI. We use DI only to overwrite the
-       // sanitizer, but not for default one. The default one is pulled in by the Ivy
-       // instructions as needed.
-       expect(sanitizer).toBe(null);
-     }));
+    const sanitizer: Sanitizer | null = injector.get(Sanitizer, null);
+    // We don't want to have sanitizer in DI. We use DI only to overwrite the
+    // sanitizer, but not for default one. The default one is pulled in by the Ivy
+    // instructions as needed.
+    expect(sanitizer).toBe(null);
+  }));
 
-  it('should throw if no element is found', done => {
+  it('should throw if no element is found', (done) => {
     const logger = new MockConsole();
     const errorHandler = new ErrorHandler();
     (errorHandler as any)._console = logger as any;
-    bootstrap(NonExistentComp, [
-      {provide: ErrorHandler, useValue: errorHandler}
-    ]).then(null, (reason) => {
-      expect(reason.message).toContain('The selector "non-existent" did not match any elements');
-      done();
-      return null;
-    });
+    bootstrap(NonExistentComp, [{provide: ErrorHandler, useValue: errorHandler}]).then(
+      null,
+      (reason) => {
+        expect(reason.message).toContain('The selector "non-existent" did not match any elements');
+        done();
+        return null;
+      },
+    );
   });
 
   it('should throw if no provider', async () => {
@@ -506,7 +580,11 @@ describe('bootstrap factory method', () => {
 
     class IDontExist {}
 
-    @Component({selector: 'cmp', template: 'Cmp'})
+    @Component({
+      selector: 'cmp',
+      template: 'Cmp',
+      standalone: false,
+    })
     class CustomCmp {
       constructor(iDontExist: IDontExist) {}
     }
@@ -514,44 +592,45 @@ describe('bootstrap factory method', () => {
     @Component({
       selector: 'hello-app',
       template: '<cmp></cmp>',
+      standalone: false,
     })
-    class RootCmp {
-    }
+    class RootCmp {}
 
     @NgModule({declarations: [CustomCmp], exports: [CustomCmp]})
-    class CustomModule {
-    }
+    class CustomModule {}
 
-    await expectAsync(bootstrap(RootCmp, [{provide: ErrorHandler, useValue: errorHandler}], [], [
-      CustomModule
-    ])).toBeRejected();
+    await expectAsync(
+      bootstrap(RootCmp, [{provide: ErrorHandler, useValue: errorHandler}], [], [CustomModule]),
+    ).toBeRejected();
   });
 
   if (getDOM().supportsDOMEvents) {
-    it('should forward the error to promise when bootstrap fails', done => {
+    it('should forward the error to promise when bootstrap fails', (done) => {
       const logger = new MockConsole();
       const errorHandler = new ErrorHandler();
       (errorHandler as any)._console = logger as any;
 
-      const refPromise =
-          bootstrap(NonExistentComp, [{provide: ErrorHandler, useValue: errorHandler}]);
+      const refPromise = bootstrap(NonExistentComp, [
+        {provide: ErrorHandler, useValue: errorHandler},
+      ]);
       refPromise.then(null, (reason: any) => {
         expect(reason.message).toContain('The selector "non-existent" did not match any elements');
         done();
       });
     });
 
-    it('should invoke the default exception handler when bootstrap fails', done => {
+    it('should invoke the default exception handler when bootstrap fails', (done) => {
       const logger = new MockConsole();
       const errorHandler = new ErrorHandler();
       (errorHandler as any)._console = logger as any;
 
-      const refPromise =
-          bootstrap(NonExistentComp, [{provide: ErrorHandler, useValue: errorHandler}]);
+      const refPromise = bootstrap(NonExistentComp, [
+        {provide: ErrorHandler, useValue: errorHandler},
+      ]);
       refPromise.then(null, (reason) => {
-        expect(logger.res[0].join('#'))
-            .toContain(
-                'ERROR#Error: NG05104: The selector "non-existent" did not match any elements');
+        expect(logger.res[0].join('#')).toContain(
+          'ERROR#Error: NG05104: The selector "non-existent" did not match any elements',
+        );
         done();
         return null;
       });
@@ -561,10 +640,10 @@ describe('bootstrap factory method', () => {
   it('should create an injector promise', async () => {
     const refPromise = bootstrap(HelloRootCmp, testProviders);
     expect(refPromise).toEqual(jasmine.any(Promise));
-    await refPromise;  // complete component initialization before switching to the next test
+    await refPromise; // complete component initialization before switching to the next test
   });
 
-  it('should set platform name to browser', done => {
+  it('should set platform name to browser', (done) => {
     const refPromise = bootstrap(HelloRootCmp, testProviders);
     refPromise.then((ref) => {
       expect(isPlatformBrowser(ref.injector.get(PLATFORM_ID))).toBe(true);
@@ -572,7 +651,7 @@ describe('bootstrap factory method', () => {
     }, done.fail);
   });
 
-  it('should display hello world', done => {
+  it('should display hello world', (done) => {
     const refPromise = bootstrap(HelloRootCmp, testProviders);
     refPromise.then((ref) => {
       expect(el).toHaveText('hello world!');
@@ -581,26 +660,27 @@ describe('bootstrap factory method', () => {
     }, done.fail);
   });
 
-  it('should throw a descriptive error if BrowserModule is installed again via a lazily loaded module',
-     done => {
-       @NgModule({imports: [BrowserModule]})
-       class AsyncModule {
-       }
-       bootstrap(HelloRootCmp, testProviders)
-           .then((ref: ComponentRef<HelloRootCmp>) => {
-             const compiler: Compiler = ref.injector.get(Compiler);
-             return compiler.compileModuleAsync(AsyncModule).then(factory => {
-               expect(() => factory.create(ref.injector))
-                   .toThrowError(
-                       'NG05100: Providers from the `BrowserModule` have already been loaded. ' +
-                       'If you need access to common directives such as NgIf and NgFor, ' +
-                       'import the `CommonModule` instead.');
-             });
-           })
-           .then(() => done(), err => done.fail(err));
-     });
+  it('should throw a descriptive error if BrowserModule is installed again via a lazily loaded module', (done) => {
+    @NgModule({imports: [BrowserModule]})
+    class AsyncModule {}
+    bootstrap(HelloRootCmp, testProviders)
+      .then((ref: ComponentRef<HelloRootCmp>) => {
+        const compiler: Compiler = ref.injector.get(Compiler);
+        return compiler.compileModuleAsync(AsyncModule).then((factory) => {
+          expect(() => factory.create(ref.injector)).toThrowError(
+            'NG05100: Providers from the `BrowserModule` have already been loaded. ' +
+              'If you need access to common directives such as NgIf and NgFor, ' +
+              'import the `CommonModule` instead.',
+          );
+        });
+      })
+      .then(
+        () => done(),
+        (err) => done.fail(err),
+      );
+  });
 
-  it('should support multiple calls to bootstrap', done => {
+  it('should support multiple calls to bootstrap', (done) => {
     const refPromise1 = bootstrap(HelloRootCmp, testProviders);
     const refPromise2 = bootstrap(HelloRootCmp2, testProviders);
     Promise.all([refPromise1, refPromise2]).then((refs) => {
@@ -610,15 +690,14 @@ describe('bootstrap factory method', () => {
     }, done.fail);
   });
 
-  it('should not crash if change detection is invoked when the root component is disposed',
-     done => {
-       bootstrap(HelloOnDestroyTickCmp, testProviders).then((ref) => {
-         expect(() => ref.destroy()).not.toThrow();
-         done();
-       });
-     });
+  it('should not crash if change detection is invoked when the root component is disposed', (done) => {
+    bootstrap(HelloOnDestroyTickCmp, testProviders).then((ref) => {
+      expect(() => ref.destroy()).not.toThrow();
+      done();
+    });
+  });
 
-  it('should unregister change detectors when components are disposed', done => {
+  it('should unregister change detectors when components are disposed', (done) => {
     bootstrap(HelloRootCmp, testProviders).then((ref) => {
       const appRef = ref.injector.get(ApplicationRef);
       ref.destroy();
@@ -627,9 +706,11 @@ describe('bootstrap factory method', () => {
     }, done.fail);
   });
 
-  it('should make the provided bindings available to the application component', done => {
-    const refPromise =
-        bootstrap(HelloRootCmp3, [testProviders, {provide: 'appBinding', useValue: 'BoundValue'}]);
+  it('should make the provided bindings available to the application component', (done) => {
+    const refPromise = bootstrap(HelloRootCmp3, [
+      testProviders,
+      {provide: 'appBinding', useValue: 'BoundValue'},
+    ]);
 
     refPromise.then((ref) => {
       expect(ref.injector.get('appBinding')).toEqual('BoundValue');
@@ -637,17 +718,20 @@ describe('bootstrap factory method', () => {
     }, done.fail);
   });
 
-  it('should not override locale provided during bootstrap', done => {
-    const refPromise =
-        bootstrap(HelloRootCmp, [testProviders], [{provide: LOCALE_ID, useValue: 'fr-FR'}]);
+  it('should not override locale provided during bootstrap', (done) => {
+    const refPromise = bootstrap(
+      HelloRootCmp,
+      [testProviders],
+      [{provide: LOCALE_ID, useValue: 'fr-FR'}],
+    );
 
-    refPromise.then(ref => {
+    refPromise.then((ref) => {
       expect(ref.injector.get(LOCALE_ID)).toEqual('fr-FR');
       done();
     }, done.fail);
   });
 
-  it('should avoid cyclic dependencies when root component requires Lifecycle through DI', done => {
+  it('should avoid cyclic dependencies when root component requires Lifecycle through DI', (done) => {
     const refPromise = bootstrap(HelloRootCmp4, testProviders);
 
     refPromise.then((ref) => {
@@ -657,19 +741,19 @@ describe('bootstrap factory method', () => {
     }, done.fail);
   });
 
-  it('should run platform initializers', done => {
+  it('should run platform initializers', (done) => {
     inject([Log], (log: Log) => {
       const p = createPlatformFactory(platformBrowserDynamic, 'someName', [
         {provide: PLATFORM_INITIALIZER, useValue: log.fn('platform_init1'), multi: true},
-        {provide: PLATFORM_INITIALIZER, useValue: log.fn('platform_init2'), multi: true}
+        {provide: PLATFORM_INITIALIZER, useValue: log.fn('platform_init2'), multi: true},
       ])();
 
       @NgModule({
         imports: [BrowserModule],
         providers: [
           {provide: APP_INITIALIZER, useValue: log.fn('app_init1'), multi: true},
-          {provide: APP_INITIALIZER, useValue: log.fn('app_init2'), multi: true}
-        ]
+          {provide: APP_INITIALIZER, useValue: log.fn('app_init2'), multi: true},
+        ],
       })
       class SomeModule {
         ngDoBootstrap() {}
@@ -684,13 +768,13 @@ describe('bootstrap factory method', () => {
     })();
   });
 
-  it('should not allow provideZoneChangeDetection in bootstrapModule', async () => {
+  it('should allow provideZoneChangeDetection in bootstrapModule', async () => {
     @NgModule({imports: [BrowserModule], providers: [provideZoneChangeDetection()]})
     class SomeModule {
+      ngDoBootstrap() {}
     }
 
-    await expectAsync(platformBrowserDynamic().bootstrapModule(SomeModule))
-        .toBeRejectedWithError(/provideZoneChangeDetection.*BootstrapOptions/);
+    await expectAsync(platformBrowserDynamic().bootstrapModule(SomeModule)).toBeResolved();
   });
 
   it('should register each application with the testability registry', async () => {
@@ -705,7 +789,7 @@ describe('bootstrap factory method', () => {
     expect(registry.findTestabilityInTree(el2)).toEqual(ngModuleRef2.injector.get(Testability));
   });
 
-  it('should allow to pass schemas', done => {
+  it('should allow to pass schemas', (done) => {
     bootstrap(HelloCmpUsingCustomElement, testProviders).then(() => {
       expect(el).toHaveText('hello world!');
       done();
@@ -714,15 +798,19 @@ describe('bootstrap factory method', () => {
 
   describe('change detection', () => {
     const log: string[] = [];
+
     @Component({
       selector: 'hello-app',
       template: '<div id="button-a" (click)="onClick()">{{title}}</div>',
+      standalone: false,
     })
     class CompA {
       title: string = '';
+
       ngDoCheck() {
         log.push('CompA:ngDoCheck');
       }
+
       onClick() {
         this.title = 'CompA';
         log.push('CompA:onClick');
@@ -732,47 +820,49 @@ describe('bootstrap factory method', () => {
     @Component({
       selector: 'hello-app-2',
       template: '<div id="button-b" (click)="onClick()">{{title}}</div>',
+      standalone: false,
     })
     class CompB {
       title: string = '';
+
       ngDoCheck() {
         log.push('CompB:ngDoCheck');
       }
+
       onClick() {
         this.title = 'CompB';
         log.push('CompB:onClick');
       }
     }
 
-    it('should be triggered for all bootstrapped components in case change happens in one of them',
-       done => {
-         @NgModule({
-           imports: [BrowserModule],
-           declarations: [CompA, CompB],
-           bootstrap: [CompA, CompB],
-           schemas: [CUSTOM_ELEMENTS_SCHEMA]
-         })
-         class TestModuleA {
-         }
-         platformBrowserDynamic().bootstrapModule(TestModuleA).then((ref) => {
-           log.length = 0;
-           (el.querySelectorAll<HTMLElement>('#button-a')[0]).click();
-           expect(log).toContain('CompA:onClick');
-           expect(log).toContain('CompA:ngDoCheck');
-           expect(log).toContain('CompB:ngDoCheck');
+    it('should be triggered for all bootstrapped components in case change happens in one of them', (done) => {
+      @NgModule({
+        imports: [BrowserModule],
+        declarations: [CompA, CompB],
+        bootstrap: [CompA, CompB],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      })
+      class TestModuleA {}
+      platformBrowserDynamic()
+        .bootstrapModule(TestModuleA)
+        .then((ref) => {
+          log.length = 0;
+          el.querySelectorAll<HTMLElement>('#button-a')[0].click();
+          expect(log).toContain('CompA:onClick');
+          expect(log).toContain('CompA:ngDoCheck');
+          expect(log).toContain('CompB:ngDoCheck');
 
-           log.length = 0;
-           el2.querySelectorAll<HTMLElement>('#button-b')[0].click();
-           expect(log).toContain('CompB:onClick');
-           expect(log).toContain('CompA:ngDoCheck');
-           expect(log).toContain('CompB:ngDoCheck');
+          log.length = 0;
+          el2.querySelectorAll<HTMLElement>('#button-b')[0].click();
+          expect(log).toContain('CompB:onClick');
+          expect(log).toContain('CompA:ngDoCheck');
+          expect(log).toContain('CompB:ngDoCheck');
 
-           done();
-         }, done.fail);
-       });
+          done();
+        }, done.fail);
+    });
 
-
-    it('should work in isolation for each component bootstrapped individually', done => {
+    it('should work in isolation for each component bootstrapped individually', (done) => {
       const refPromise1 = bootstrap(CompA);
       const refPromise2 = bootstrap(CompB);
       Promise.all([refPromise1, refPromise2]).then((refs) => {
@@ -793,3 +883,47 @@ describe('bootstrap factory method', () => {
     });
   });
 });
+
+describe('providePlatformInitializer', () => {
+  beforeEach(() => destroyPlatform());
+  afterEach(() => destroyPlatform());
+
+  it('should call the provided function when platform is initialized', () => {
+    let initialized = false;
+
+    createPlatformInjector([providePlatformInitializer(() => (initialized = true))]);
+
+    expect(initialized).toBe(true);
+  });
+
+  it('should be able to inject dependencies', () => {
+    const TEST_TOKEN = new InjectionToken<string>('TEST_TOKEN');
+    let injectedValue!: string;
+
+    createPlatformInjector([
+      {provide: TEST_TOKEN, useValue: 'test'},
+      providePlatformInitializer(() => {
+        injectedValue = _inject(TEST_TOKEN);
+      }),
+    ]);
+
+    expect(injectedValue).toBe('test');
+  });
+
+  function createPlatformInjector(providers: Array<EnvironmentProviders | Provider>) {
+    /* TODO: should we change `createOrReusePlatformInjector` type to allow `EnvironmentProviders`?
+     */
+    return createOrReusePlatformInjector(providers as any);
+  }
+});
+
+/**
+ * Typing tests.
+ */
+@Component({
+  template: '',
+  // @ts-expect-error: `providePlatformInitializer()` should not work with Component.providers, as
+  // it wouldn't be executed anyway.
+  providers: [providePlatformInitializer(() => {})],
+})
+class Test {}

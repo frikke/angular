@@ -74,9 +74,9 @@ HELPFUL: Approximate dates are offered as general guidance and are subject to ch
 
 | Version | Date               |
 |:--------|:-------------------|
-| v16.1   | Week of 2023-06-12 |
-| v16.2   | Week of 2023-08-07 |
-| v17.0   | Week of 2023-11-06 |
+| v19.1   | Week of 2025-01-13 |
+| v19.2   | Week of 2025-02-24 |
+| v20.0   | Week of 2025-05-19 |
 
 ### Support window
 
@@ -93,11 +93,11 @@ The following table provides the status for Angular versions under support.
 
 | Version | Status | Released   | Active ends | LTS ends   |
 |:--------|:-------|:-----------|:------------|:-----------|
-| ^17.0.0 | Active | 2023-11-08 | 2024-05-08  | 2025-05-15 |
-| ^16.0.0 | LTS    | 2023-05-03 | 2023-11-08  | 2024-11-08 |
-| ^15.0.0 | LTS    | 2022-11-18 | 2023-05-03  | 2024-05-18 |
+| ^19.0.0 | Active | 2024-11-19 | 2025-05-19  | 2026-05-19 |
+| ^18.0.0 | LTS    | 2024-05-22 | 2024-11-19  | 2025-11-19 |
+| ^17.0.0 | LTS    | 2023-11-08 | 2024-05-08  | 2025-05-15 |
 
-Angular versions v2 to v14 are no longer supported.
+Angular versions v2 to v16 are no longer supported.
 
 ### LTS fixes
 
@@ -108,7 +108,7 @@ As a general rule, a fix is considered for an LTS version if it resolves one of:
 
 ## Deprecation policy
 
-When the Angular team intends to remove an API or feature, it will be marked as *deprecated*. This occurs when when an API is obsolete, superseded by another API, or otherwise discontinued. Deprecated API remain available through their deprecated phase, which lasts a minimum two major versions (approximately one year).
+When the Angular team intends to remove an API or feature, it will be marked as *deprecated*. This occurs when an API is obsolete, superseded by another API, or otherwise discontinued. Deprecated API remain available through their deprecated phase, which lasts a minimum two major versions (approximately one year).
 
 To help ensure that you have sufficient time and a clear path to update, this is our deprecation policy:
 
@@ -121,8 +121,8 @@ To help ensure that you have sufficient time and a clear path to update, this is
 ## Compatibility policy
 
 Angular is a collection of many packages, subprojects, and tools.
-To prevent accidental use of private APIs and so that you can clearly understand what is covered by the practices described here &mdash; we document what is and is not considered our public API surface.
-For details, see [Supported Public API Surface of Angular](https://github.com/angular/angular/blob/main/docs/PUBLIC_API.md "Supported Public API Surface of Angular").
+To prevent accidental use of private APIs and so that you can clearly understand what is covered by the practices described here — we document what is and is not considered our public API surface.
+For details, see [Supported Public API Surface of Angular](https://github.com/angular/angular/blob/main/contributing-docs/public-api-surface.md "Supported Public API Surface of Angular").
 
 To guarantee backward compatibility of Angular we run a series of checks before we merge any change:
 
@@ -140,7 +140,7 @@ To support you in case of breaking changes in Angular:
 
 * We follow our [deprecation policy](#deprecation-policy) before we remove a public API
 * Support update automation via the `ng update` command. It provides code transformations which we often have tested ahead of time over hundreds of thousands of projects at Google
-* Step by step instructions how to update from one major version to another at the ["Angular Update Guide"](https://update.angular.io/)
+* Step by step instructions how to update from one major version to another at the ["Angular Update Guide"](update-guide)
 
 You can `ng update` to any version of Angular, provided that the following criteria are met:
 
@@ -162,3 +162,9 @@ Occasionally we introduce new APIs under the label of "Developer Preview". These
 This may be because we want to gather feedback from real applications before stabilization, or because the associated documentation or migration tooling is not fully complete.
 
 The policies and practices that are described in this document do not apply to APIs marked as Developer Preview. Such APIs can change at any time, even in new patch versions of the framework. Teams should decide for themselves whether the benefits of using Developer Preview APIs are worth the risk of breaking changes outside of our normal use of semantic versioning.
+
+## Experimental
+
+These APIs might not become stable at all or have significant changes before becoming stable.
+
+The policies and practices that are described in this document do not apply to APIs marked as experimental. Such APIs can change at any time, even in new patch versions of the framework. Teams should decide for themselves whether the benefits of using experimental APIs are worth the risk of breaking changes outside of our normal use of semantic versioning.

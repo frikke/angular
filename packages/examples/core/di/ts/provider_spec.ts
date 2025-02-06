@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Injectable, InjectionToken, Injector, Optional} from '@angular/core';
@@ -129,8 +129,8 @@ import {Injectable, InjectionToken, Injector, Optional} from '@angular/core';
         const injector = Injector.create({
           providers: [
             {provide: FormalGreeting, useClass: FormalGreeting, deps: []},
-            {provide: Greeting, useClass: FormalGreeting, deps: []}
-          ]
+            {provide: Greeting, useClass: FormalGreeting, deps: []},
+          ],
         });
 
         // The injector returns different instances.
@@ -189,12 +189,13 @@ import {Injectable, InjectionToken, Injector, Optional} from '@angular/core';
 
         const injector = Injector.create({
           providers: [
-            {provide: Location, useValue: 'https://angular.io/#someLocation'}, {
+            {provide: Location, useValue: 'https://angular.io/#someLocation'},
+            {
               provide: Hash,
               useFactory: (location: string) => location.split('#')[1],
-              deps: [Location]
-            }
-          ]
+              deps: [Location],
+            },
+          ],
         });
 
         expect(injector.get(Hash)).toEqual('someLocation');
@@ -207,12 +208,14 @@ import {Injectable, InjectionToken, Injector, Optional} from '@angular/core';
         const Hash = new InjectionToken('hash');
 
         const injector = Injector.create({
-          providers: [{
-            provide: Hash,
-            useFactory: (location: string) => `Hash for: ${location}`,
-            // use a nested array to define metadata for dependencies.
-            deps: [[new Optional(), Location]]
-          }]
+          providers: [
+            {
+              provide: Hash,
+              useFactory: (location: string) => `Hash for: ${location}`,
+              // use a nested array to define metadata for dependencies.
+              deps: [[new Optional(), Location]],
+            },
+          ],
         });
 
         expect(injector.get(Hash)).toEqual('Hash for: null');

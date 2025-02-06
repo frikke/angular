@@ -3,13 +3,12 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {LocationStrategy} from '@angular/common';
-import {EventEmitter, Injectable} from '@angular/core';
-
-
+import {Injectable} from '@angular/core';
+import {Subject} from 'rxjs';
 
 /**
  * A mock implementation of {@link LocationStrategy} that allows tests to fire simulated
@@ -24,7 +23,7 @@ export class MockLocationStrategy extends LocationStrategy {
   internalTitle: string = '';
   urlChanges: string[] = [];
   /** @internal */
-  _subject: EventEmitter<any> = new EventEmitter();
+  _subject = new Subject<_MockPopStateEvent>();
   private stateChanges: any[] = [];
   constructor() {
     super();
@@ -32,7 +31,7 @@ export class MockLocationStrategy extends LocationStrategy {
 
   simulatePopState(url: string): void {
     this.internalPath = url;
-    this._subject.emit(new _MockPopStateEvent(this.path()));
+    this._subject.next(new _MockPopStateEvent(this.path()));
   }
 
   override path(includeHash: boolean = false): string {
@@ -52,7 +51,7 @@ export class MockLocationStrategy extends LocationStrategy {
 
     this.internalTitle = title;
 
-    const url = path + (query.length > 0 ? ('?' + query) : '');
+    const url = path + (query.length > 0 ? '?' + query : '');
     this.internalPath = url;
 
     const externalUrl = this.prepareExternalUrl(url);
@@ -65,7 +64,7 @@ export class MockLocationStrategy extends LocationStrategy {
 
     this.internalTitle = title;
 
-    const url = path + (query.length > 0 ? ('?' + query) : '');
+    const url = path + (query.length > 0 ? '?' + query : '');
     this.internalPath = url;
 
     const externalUrl = this.prepareExternalUrl(url);

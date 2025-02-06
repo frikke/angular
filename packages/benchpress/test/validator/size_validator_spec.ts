@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Injector, MeasureValues, SizeValidator} from '../../index';
@@ -12,13 +12,9 @@ describe('size validator', () => {
   let validator: SizeValidator;
 
   function createValidator(size: number) {
-    validator =
-        Injector
-            .create({
-              providers:
-                  [SizeValidator.PROVIDERS, {provide: SizeValidator.SAMPLE_SIZE, useValue: size}]
-            })
-            .get(SizeValidator);
+    validator = Injector.create({
+      providers: [SizeValidator.PROVIDERS, {provide: SizeValidator.SAMPLE_SIZE, useValue: size}],
+    }).get(SizeValidator);
   }
 
   it('should return sampleSize as description', () => {

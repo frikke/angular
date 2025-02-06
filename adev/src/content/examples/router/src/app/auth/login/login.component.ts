@@ -1,17 +1,21 @@
 // #docregion
-import { Component } from '@angular/core';
-import { NavigationExtras, Router } from '@angular/router';
-import { AuthService } from '../auth.service';
+import {Component} from '@angular/core';
+import {NavigationExtras, Router} from '@angular/router';
+import {AuthService} from '../auth.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
+  standalone: false,
 })
 export class LoginComponent {
   message: string;
 
-  constructor(public authService: AuthService, public router: Router) {
+  constructor(
+    public authService: AuthService,
+    public router: Router,
+  ) {
     this.message = this.getMessage();
   }
 
@@ -34,7 +38,7 @@ export class LoginComponent {
         // that passes on our global query params and fragment
         const navigationExtras: NavigationExtras = {
           queryParamsHandling: 'preserve',
-          preserveFragment: true
+          preserveFragment: true,
         };
 
         // Redirect the user

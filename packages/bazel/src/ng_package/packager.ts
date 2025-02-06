@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import * as fs from 'fs';
@@ -16,16 +16,10 @@ import {analyzeFileAndEnsureNoCrossImports} from './cross_entry_points_imports';
  * List of known `package.json` fields which provide information about
  * supported package formats and their associated entry paths.
  */
-const knownFormatPackageJsonFormatFields = [
-  'main',
-  'esm2022',
-  'esm',
-  'typings',
-  'module',
-] as const;
+const knownFormatPackageJsonFormatFields = ['main', 'typings', 'module'] as const;
 
 /** Union type matching known `package.json` format fields. */
-type KnownPackageJsonFormatFields = typeof knownFormatPackageJsonFormatFields[number];
+type KnownPackageJsonFormatFields = (typeof knownFormatPackageJsonFormatFields)[number];
 
 /**
  * Type describing the conditional exports descriptor for an entry-point.
@@ -33,15 +27,13 @@ type KnownPackageJsonFormatFields = typeof knownFormatPackageJsonFormatFields[nu
  */
 type ConditionalExport = {
   types?: string;
-  esm2022?: string;
-  esm?: string;
   default?: string;
 };
 
 /** Type describing a `package.json` the packager deals with. */
 type PackageJson = {
   [key in KnownPackageJsonFormatFields]?: string;
-}&{
+} & {
   name: string;
   type?: string;
   exports?: Record<string, ConditionalExport>;
@@ -64,29 +56,32 @@ function main(args: string[]): void {
   const params = fs.readFileSync(paramFilePath, 'utf-8').split('\n').map(unquoteParameter);
 
   const [
-      // Output directory for the npm package.
-      outputDirExecPath,
+    // Output directory for the npm package.
+    outputDirExecPath,
 
-      // The package segment of the ng_package rule's label (e.g. 'package/common').
-      owningPackageName,
+    // The package segment of the ng_package rule's label (e.g. 'package/common').
+    owningPackageName,
 
-      // JSON data capturing metadata of the package being built. See `PackageMetadata`.
-      metadataArg,
+    // JSON data capturing metadata of the package being built. See `PackageMetadata`.
+    metadataArg,
 
-      // Path to the package's README.md.
-      readmeMd,
+    // Path to the package's README.md.
+    readmeMd,
 
-      // List of rolled-up flat ES2022 modules
-      fesm2022Arg,
+    // Path to the package's LICENSE file.
+    licenseFile,
 
-      // List of individual ES2022 modules
-      esm2022Arg,
+    // List of rolled-up flat ES2022 modules
+    fesm2022Arg,
 
-      // List of static files that should be copied into the package.
-      staticFilesArg,
+    // List of individual ES2022 modules
+    esm2022Arg,
 
-      // List of all type definitions that need to packaged into the ng_package.
-      typeDefinitionsArg,
+    // List of static files that should be copied into the package.
+    staticFilesArg,
+
+    // List of all type definitions that need to packaged into the ng_package.
+    typeDefinitionsArg,
   ] = params;
 
   const fesm2022 = JSON.parse(fesm2022Arg) as BazelFileInfo[];
@@ -99,13 +94,17 @@ function main(args: string[]): void {
     copyFile(readmeMd, 'README.md');
   }
 
+  if (licenseFile) {
+    copyFile(licenseFile, 'LICENSE');
+  }
+
   /**
    * Writes a file with the specified content into the package output.
    * @param outputRelativePath Relative path in the output directory where the
    *   file is written to.
    * @param fileContent Content of the file.
    */
-  function writeFile(outputRelativePath: string, fileContent: string|Buffer) {
+  function writeFile(outputRelativePath: string, fileContent: string | Buffer) {
     const outputPath = path.join(outputDirExecPath, outputRelativePath);
 
     // Always ensure that the target directory exists.
@@ -136,16 +135,6 @@ function main(args: string[]): void {
     return path.relative(owningPackageName, file.shortPath);
   }
 
-  /** Writes an ESM file into the `esm2022` output directory. */
-  function writeEsm2022File(file: BazelFileInfo) {
-    // Note: files which do not belong to the owning package of this `ng_package` are omitted.
-    // this prevents us from accidentally bringing in transitive node module dependencies.
-    const packageRelativePath = getOwningPackageRelativePath(file);
-    if (!packageRelativePath.startsWith('..')) {
-      copyFile(file.path, getEsm2022OutputRelativePath(file));
-    }
-  }
-
   /** Gets the output-relative path where the given flat ESM file should be written to. */
   function getFlatEsmOutputRelativePath(file: BazelFileInfo) {
     // Flat ESM files should be put into their owning package relative sub-path. e.g. if
@@ -154,13 +143,6 @@ function main(args: string[]): void {
     // for the `fesm2022` bundles. The directory name for `fesm` is already declared as
     // part of the Bazel action generating these files. See `ng_package.bzl`.
     return getOwningPackageRelativePath(file);
-  }
-
-  /** Gets the output-relative path where a non-flat ESM2022 file should be written to. */
-  function getEsm2022OutputRelativePath(file: BazelFileInfo) {
-    // Path computed relative to the current package in bazel-bin. e.g. a ES2022 output file
-    // in `bazel-out/<..>/packages/core/src/di.mjs` should be stored in `esm2022/src/di.mjs`.
-    return path.join('esm2022', getOwningPackageRelativePath(file));
   }
 
   /** Gets the output-relative path where the typing file is being written to. */
@@ -190,12 +172,9 @@ function main(args: string[]): void {
     return getEntryPointSubpath(moduleName) !== '';
   }
 
-  const crossEntryPointFailures: string[] = [];
-
-  esm2022.forEach(file => {
-    crossEntryPointFailures.push(...analyzeFileAndEnsureNoCrossImports(file, metadata));
-    writeEsm2022File(file);
-  });
+  const crossEntryPointFailures = esm2022.flatMap((file) =>
+    analyzeFileAndEnsureNoCrossImports(file, metadata),
+  );
 
   if (crossEntryPointFailures.length) {
     console.error(crossEntryPointFailures);
@@ -203,12 +182,12 @@ function main(args: string[]): void {
   }
 
   // Copy all FESM files into the package output.
-  fesm2022.forEach(f => copyFile(f.path, getFlatEsmOutputRelativePath(f)));
+  fesm2022.forEach((f) => copyFile(f.path, getFlatEsmOutputRelativePath(f)));
 
   // Copy all type definitions into the package, preserving the sub-path from the
   // owning package. e.g. a file like `packages/animations/browser/__index.d.ts` will
   // end up in `browser/index.d.ts`
-  typeDefinitions.forEach(f => copyFile(f.path, getTypingOutputRelativePath(f)));
+  typeDefinitions.forEach((f) => copyFile(f.path, getTypingOutputRelativePath(f)));
 
   for (const file of staticFiles) {
     // We copy all files into the package output while preserving the sub-path from
@@ -226,20 +205,25 @@ function main(args: string[]): void {
       // Resolution in the package should only be based on the top-level `package.json`.
       if (!isPrimaryPackageJson) {
         throw Error(
-            `Found a nested "package.json" file in the package output: ${file.shortPath}.\n` +
-            `All information of the package should reside in the primary package file.`);
+          `Found a nested "package.json" file in the package output: ${file.shortPath}.\n` +
+            `All information of the package should reside in the primary package file.`,
+        );
       }
 
       // Check if the `name` field of the `package.json` files are matching with
       // name of the NPM package. This is an additional safety check.
       if (packageName !== metadata.npmPackageName) {
         throw Error(
-            `Primary "package.json" has mismatching package name. Expected the ` +
-            `package to be named "${metadata.npmPackageName}", but is set to: ${packageName}.`);
+          `Primary "package.json" has mismatching package name. Expected the ` +
+            `package to be named "${metadata.npmPackageName}", but is set to: ${packageName}.`,
+        );
       }
 
-      let newPackageJson =
-          insertFormatFieldsIntoPackageJson(outputRelativePath, packageJson, false);
+      let newPackageJson = insertFormatFieldsIntoPackageJson(
+        outputRelativePath,
+        packageJson,
+        false,
+      );
 
       newPackageJson = updatePrimaryPackageJson(newPackageJson);
 
@@ -260,8 +244,10 @@ function main(args: string[]): void {
    * @param isGeneratedPackageJson Whether the passed package.json has been generated.
    */
   function insertFormatFieldsIntoPackageJson(
-      packageJsonOutRelativePath: string, parsedPackage: Readonly<PackageJson>,
-      isGeneratedPackageJson: boolean): PackageJson {
+    packageJsonOutRelativePath: string,
+    parsedPackage: Readonly<PackageJson>,
+    isGeneratedPackageJson: boolean,
+  ): PackageJson {
     const packageJson: PackageJson = {...parsedPackage};
     const packageName = packageJson['name'];
     const entryPointInfo = metadata.entryPoints[packageName];
@@ -280,19 +266,24 @@ function main(args: string[]): void {
       console.error('WARNING: no module metadata for package', packageName);
       console.error('   Not updating the package.json file to point to it');
       console.error(
-          '   The ng_module for this package is possibly missing the module_name attribute ');
+        '   The ng_module for this package is possibly missing the module_name attribute ',
+      );
       return packageJson;
     }
 
     // If we guessed the index paths for a module, and it contains an explicit `package.json`
     // file that already sets format properties, we skip automatic insertion of format
     // properties but report a warning in case properties have been set by accident.
-    if (entryPointInfo.guessedPaths && !isGeneratedPackageJson &&
-        hasExplicitFormatProperties(packageJson)) {
+    if (
+      entryPointInfo.guessedPaths &&
+      !isGeneratedPackageJson &&
+      hasExplicitFormatProperties(packageJson)
+    ) {
       console.error('WARNING: `package.json` explicitly sets format properties (like `main`).');
       console.error(
-          '    Skipping automatic insertion of format properties as explicit ' +
-          'format properties are set.');
+        '    Skipping automatic insertion of format properties as explicit ' +
+          'format properties are set.',
+      );
       console.error('    Ignore this warning if explicit properties are set intentionally.');
       return packageJson;
     }
@@ -300,10 +291,12 @@ function main(args: string[]): void {
     const fesm2022RelativeOutPath = getFlatEsmOutputRelativePath(entryPointInfo.fesm2022Bundle);
     const typingsRelativeOutPath = getTypingOutputRelativePath(entryPointInfo.typings);
 
-    packageJson.module =
-        normalizePath(path.relative(packageJsonContainingDir, fesm2022RelativeOutPath));
-    packageJson.typings =
-        normalizePath(path.relative(packageJsonContainingDir, typingsRelativeOutPath));
+    packageJson.module = normalizePath(
+      path.relative(packageJsonContainingDir, fesm2022RelativeOutPath),
+    );
+    packageJson.typings = normalizePath(
+      path.relative(packageJsonContainingDir, typingsRelativeOutPath),
+    );
 
     return packageJson;
   }
@@ -313,10 +306,11 @@ function main(args: string[]): void {
    * the module conditional exports and the ESM module type.
    */
   function updatePrimaryPackageJson(packageJson: Readonly<PackageJson>): PackageJson {
-    if (packageJson.type !== undefined) {
+    if (packageJson.type !== undefined && packageJson.type !== 'module') {
       throw Error(
-          'The primary "package.json" file of the package sets the "type" field ' +
-          'that is controlled by the packager. Please unset it.');
+        'The primary "package.json" file of the package sets the "type" field ' +
+          'that is controlled by the packager. Please unset it or set `type` to `module`.',
+      );
     }
 
     const newPackageJson: PackageJson = {...packageJson};
@@ -330,9 +324,9 @@ function main(args: string[]): void {
     // Capture all entry-points in the `exports` field using the subpath export declarations:
     // https://nodejs.org/api/packages.html#packages_subpath_exports.
     for (const [moduleName, entryPoint] of Object.entries(metadata.entryPoints)) {
-      const subpath =
-          isSecondaryEntryPoint(moduleName) ? `./${getEntryPointSubpath(moduleName)}` : '.';
-      const esmIndexOutRelativePath = getEsm2022OutputRelativePath(entryPoint.index);
+      const subpath = isSecondaryEntryPoint(moduleName)
+        ? `./${getEntryPointSubpath(moduleName)}`
+        : '.';
       const fesm2022OutRelativePath = getFlatEsmOutputRelativePath(entryPoint.fesm2022Bundle);
       const typesOutRelativePath = getTypingOutputRelativePath(entryPoint.typings);
 
@@ -341,8 +335,6 @@ function main(args: string[]): void {
       // https://github.com/microsoft/TypeScript/pull/45884.
       insertExportMappingOrError(newPackageJson, subpath, {
         types: normalizePath(typesOutRelativePath),
-        esm2022: normalizePath(esmIndexOutRelativePath),
-        esm: normalizePath(esmIndexOutRelativePath),
         // Note: The default conditions needs to be the last one.
         default: normalizePath(fesm2022OutRelativePath),
       });
@@ -356,7 +348,10 @@ function main(args: string[]): void {
    * @throws An error if the mapping is already defined and would conflict.
    */
   function insertExportMappingOrError(
-      packageJson: PackageJson, subpath: string, mapping: ConditionalExport) {
+    packageJson: PackageJson,
+    subpath: string,
+    mapping: ConditionalExport,
+  ) {
     if (packageJson.exports === undefined) {
       packageJson.exports = {};
     }
@@ -372,8 +367,9 @@ function main(args: string[]): void {
     for (const conditionName of Object.keys(mapping) as [keyof ConditionalExport]) {
       if (subpathExport[conditionName] !== undefined) {
         throw Error(
-            `Found a conflicting export condition for "${subpath}". The "${conditionName}" ` +
-            `condition would be overridden by the packager. Please unset it.`);
+          `Found a conflicting export condition for "${subpath}". The "${conditionName}" ` +
+            `condition would be overridden by the packager. Please unset it.`,
+        );
       }
 
       // **Note**: The order of the conditions is preserved even though we are setting
@@ -384,10 +380,9 @@ function main(args: string[]): void {
 
   /** Whether the package explicitly sets any of the format properties (like `main`). */
   function hasExplicitFormatProperties(parsedPackage: Readonly<PackageJson>): boolean {
-    return Object.keys(parsedPackage)
-        .some(
-            (fieldName: string) => knownFormatPackageJsonFormatFields.includes(
-                fieldName as KnownPackageJsonFormatFields));
+    return Object.keys(parsedPackage).some((fieldName: string) =>
+      knownFormatPackageJsonFormatFields.includes(fieldName as KnownPackageJsonFormatFields),
+    );
   }
 
   /**

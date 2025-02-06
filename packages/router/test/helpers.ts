@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {Type} from '@angular/core';
@@ -27,24 +27,32 @@ export function provideTokenLogger(token: string, returnValue = true as boolean 
   return {
     provide: token,
     useFactory: (logger: Logger) => () => (logger.add(token), returnValue),
-    deps: [Logger]
+    deps: [Logger],
   };
 }
 
 export declare type ARSArgs = {
-  url?: UrlSegment[],
-  params?: Params,
-  queryParams?: Params,
-  fragment?: string,
-  data?: Data,
-  outlet?: string, component: Type<unknown>| string | null,
-  routeConfig?: Route | null,
-  resolve?: ResolveData
+  url?: UrlSegment[];
+  params?: Params;
+  queryParams?: Params;
+  fragment?: string;
+  data?: Data;
+  outlet?: string;
+  component: Type<unknown> | string | null;
+  routeConfig?: Route | null;
+  resolve?: ResolveData;
 };
 
 export function createActivatedRouteSnapshot(args: ARSArgs): ActivatedRouteSnapshot {
   return new (ActivatedRouteSnapshot as any)(
-      args.url || [], args.params || {}, args.queryParams || null, args.fragment || null,
-      args.data || null, args.outlet || null, args.component, args.routeConfig || {},
-      args.resolve || {});
+    args.url || [],
+    args.params || {},
+    args.queryParams || null,
+    args.fragment || null,
+    args.data || null,
+    args.outlet || null,
+    args.component,
+    args.routeConfig || {},
+    args.resolve || {},
+  );
 }

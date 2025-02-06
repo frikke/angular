@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {PlaceholderRegistry} from '../../../src/i18n/serializers/placeholder';
@@ -39,27 +39,34 @@ describe('PlaceholderRegistry', () => {
     });
 
     it('should generate the same name for the same tag with the same attributes', () => {
-      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false))
-          .toEqual('START_PARAGRAPH');
-      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false))
-          .toEqual('START_PARAGRAPH');
-      expect(reg.getStartTagPlaceholderName('p', {bar: 'b', foo: 'a'}, false))
-          .toEqual('START_PARAGRAPH');
+      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false)).toEqual(
+        'START_PARAGRAPH',
+      );
+      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false)).toEqual(
+        'START_PARAGRAPH',
+      );
+      expect(reg.getStartTagPlaceholderName('p', {bar: 'b', foo: 'a'}, false)).toEqual(
+        'START_PARAGRAPH',
+      );
     });
 
     it('should generate different names for the same tag with different attributes', () => {
-      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false))
-          .toEqual('START_PARAGRAPH');
+      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false)).toEqual(
+        'START_PARAGRAPH',
+      );
       expect(reg.getStartTagPlaceholderName('p', {foo: 'a'}, false)).toEqual('START_PARAGRAPH_1');
     });
 
     it('should be case sensitive for attributes', () => {
-      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false))
-          .toEqual('START_PARAGRAPH');
-      expect(reg.getStartTagPlaceholderName('p', {fOo: 'a', bar: 'b'}, false))
-          .toEqual('START_PARAGRAPH_1');
-      expect(reg.getStartTagPlaceholderName('p', {fOo: 'a', bAr: 'b'}, false))
-          .toEqual('START_PARAGRAPH_2');
+      expect(reg.getStartTagPlaceholderName('p', {foo: 'a', bar: 'b'}, false)).toEqual(
+        'START_PARAGRAPH',
+      );
+      expect(reg.getStartTagPlaceholderName('p', {fOo: 'a', bar: 'b'}, false)).toEqual(
+        'START_PARAGRAPH_1',
+      );
+      expect(reg.getStartTagPlaceholderName('p', {fOo: 'a', bAr: 'b'}, false)).toEqual(
+        'START_PARAGRAPH_2',
+      );
     });
 
     it('should support void tags', () => {
@@ -84,6 +91,18 @@ describe('PlaceholderRegistry', () => {
     it('should generate a different name given different names', () => {
       expect(reg.getPlaceholderName('name1', 'content')).toEqual('NAME1');
       expect(reg.getPlaceholderName('name2', 'content')).toEqual('NAME2');
+    });
+  });
+
+  describe('block placeholders', () => {
+    it('should generate placeholders for a plain block', () => {
+      expect(reg.getStartBlockPlaceholderName('if', [])).toBe('START_BLOCK_IF');
+      expect(reg.getCloseBlockPlaceholderName('if')).toBe('CLOSE_BLOCK_IF');
+    });
+
+    it('should generate placeholders for a block with spaces in its name', () => {
+      expect(reg.getStartBlockPlaceholderName('else if', [])).toBe('START_BLOCK_ELSE_IF');
+      expect(reg.getCloseBlockPlaceholderName('else if')).toBe('CLOSE_BLOCK_ELSE_IF');
     });
   });
 });

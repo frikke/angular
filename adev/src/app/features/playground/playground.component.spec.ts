@@ -6,57 +6,45 @@
  * found in the LICENSE file at https://angular.dev/license
  */
 
-import {Component} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {WINDOW} from '@angular/docs';
 
-import {
-  EMBEDDED_EDITOR_SELECTOR,
-  EmbeddedEditor,
-} from '../../embedded-editor/embedded-editor.component';
-import {EmbeddedTutorialManager} from '../../embedded-editor/embedded-tutorial-manager.service';
-import {NodeRuntimeSandbox} from '../../embedded-editor/node-runtime-sandbox.service';
+import {EmbeddedTutorialManager} from '../../editor';
+import {NodeRuntimeSandbox} from '../../editor/node-runtime-sandbox.service';
 
-import {mockAsyncProvider} from '../../core/services/inject-async';
 import TutorialPlayground from './playground.component';
-
-@Component({
-  selector: EMBEDDED_EDITOR_SELECTOR,
-  template: '<div>FakeEmbeddedEditor</div>',
-  standalone: true,
-})
-class FakeEmbeddedEditor {}
-
-class FakeNodeRuntimeSandbox {
-  init() {
-    return Promise.resolve();
-  }
-}
 
 describe('TutorialPlayground', () => {
   let component: TutorialPlayground;
   let fixture: ComponentFixture<TutorialPlayground>;
+
+  const fakeWindow = {
+    location: {
+      search: window.location.search,
+    },
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TutorialPlayground],
       providers: [
         {
+          provide: WINDOW,
+          useValue: fakeWindow,
+        },
+        {
           provide: EmbeddedTutorialManager,
           useValue: {
             fetchAndSetTutorialFiles: () => {},
           },
         },
-        mockAsyncProvider(NodeRuntimeSandbox, FakeNodeRuntimeSandbox),
+        {
+          provide: NodeRuntimeSandbox,
+          useVaue: {
+            init: () => {},
+          },
+        },
       ],
-    });
-
-    TestBed.overrideComponent(TutorialPlayground, {
-      remove: {
-        imports: [EmbeddedEditor],
-      },
-      add: {
-        imports: [FakeEmbeddedEditor],
-      },
     });
 
     fixture = TestBed.createComponent(TutorialPlayground);

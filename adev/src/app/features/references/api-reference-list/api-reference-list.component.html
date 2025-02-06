@@ -1,44 +1,43 @@
-<div class="adev-reference-list-page">
-  <header>
-    <h6>Getting Started</h6>
-    <h1 tabindex="-1">API Reference</h1>
-  </header>
-  <form class="adev-reference-list-form">
+<header>
+  <h1>API Reference</h1>
+</header>
+
+<div class="adev-reference-list-filter">
+  <div class="adev-reference-list-query-filter">
     <docs-text-field
       name="query"
       placeholder="Filter"
-      [ngModel]="query()"
-      (ngModelChange)="query.set($event)"
+      [(ngModel)]="query"
+      (ngModelChange)="syncUrlWithFilters()"
     />
 
-    <div class="adev-reference-list-form-part-two">
-      <docs-slide-toggle
-        buttonId="includeDeprecated"
-        label="Show @deprecated"
-        name="includeDeprecated"
-        [ngModel]="includeDeprecated()"
-        (ngModelChange)="includeDeprecated.set($event)"
-      />
-    </div>
-    <ul class="adev-reference-list-legend">
-      @for (itemType of itemTypes; track itemType) {
+    <docs-slide-toggle
+      buttonId="includeDeprecated"
+      label="Show @deprecated"
+      name="includeDeprecated"
+      [(ngModel)]="includeDeprecated"
+    />
+  </div>
+
+  <p class="adev-reference-list-type-filter-label">Filter by Identifier type</p>
+  <ul class="adev-reference-list-type-filter">
+    @for (itemType of itemTypes; track itemType) {
       <li
-        class="adev-reference-list-legend-item"
-        [class.adev-reference-list-legend-item-active]="type() === itemType"
+        class="adev-reference-list-type-filter-item"
+        [class.adev-reference-list-type-filter-item-active]="type() === itemType"
         (click)="filterByItemType(itemType)"
       >
-        <adev-api-item-label [type]="itemType" mode="short" class="adev-api-item-label" />
-        <span>{{ itemType | adevApiLabel : 'full' }}</span>
+        <docs-api-item-label [type]="itemType" mode="short" class="docs-api-item-label" />
+        <span class="docs-api-item-label-full">{{ itemType | adevApiLabel : 'full' }}</span>
       </li>
-      }
-    </ul>
-  </form>
-
-  @if (featuredGroup().items.length) {
-  <adev-api-items-section [group]="featuredGroup()" class="adev-featured-list" />
-  } @for (group of filteredGroups(); track group) {
-  <adev-api-items-section [group]="group" />
-  }
-
-  <span id="deprecated-description" class="adev-deprecated-description">Deprecated</span>
+    }
+  </ul>
 </div>
+
+@for (group of filteredGroups(); track group.id) {
+  <adev-api-items-section [group]="group" />
+} @empty {
+  <div class="adev-reference-list-empty">
+    <p>No API items found.</p>
+  </div>
+}

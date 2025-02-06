@@ -3,21 +3,39 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
-import {ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, Pipe, Type, ViewEncapsulation, ɵɵngDeclareComponent} from '@angular/core';
+import {InputFlags} from '@angular/compiler/src/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Directive,
+  ElementRef,
+  forwardRef,
+  Pipe,
+  Type,
+  ViewEncapsulation,
+  ɵɵngDeclareComponent,
+} from '@angular/core';
 
-import {AttributeMarker, ComponentDef, ɵɵInheritDefinitionFeature, ɵɵInputTransformsFeature, ɵɵNgOnChangesFeature} from '../../../src/render3';
+import {
+  AttributeMarker,
+  ComponentDef,
+  ɵɵInheritDefinitionFeature,
+  ɵɵInputTransformsFeature,
+  ɵɵNgOnChangesFeature,
+} from '../../../src/render3';
 
 import {functionContaining} from './matcher';
 
 describe('component declaration jit compilation', () => {
   it('should compile a minimal component declaration', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: `<div></div>`,
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: `<div></div>`,
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       template: functionContaining([/element[^(]*\(0,'div'\)/]),
@@ -25,9 +43,12 @@ describe('component declaration jit compilation', () => {
   });
 
   it('should compile a selector', () => {
-    const def =
-        ɵɵngDeclareComponent({type: TestClass, template: '<div></div>', selector: '[dir], test'}) as
-        ComponentDef<TestClass>;
+    const def = ɵɵngDeclareComponent({
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      selector: '[dir], test',
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       selectors: [['', 'dir', ''], ['test']],
@@ -36,16 +57,17 @@ describe('component declaration jit compilation', () => {
 
   it('should compile inputs and outputs', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  inputs: {
-                    minifiedProperty: 'property',
-                    minifiedClassProperty: ['bindingName', 'classProperty'],
-                  },
-                  outputs: {
-                    minifiedEventName: 'eventBindingName',
-                  },
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      inputs: {
+        minifiedProperty: 'property',
+        minifiedClassProperty: ['bindingName', 'classProperty'],
+      },
+      outputs: {
+        minifiedEventName: 'eventBindingName',
+      },
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       inputs: {
@@ -65,16 +87,17 @@ describe('component declaration jit compilation', () => {
   it('should compile input with a transform function', () => {
     const transformFn = () => 1;
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  inputs: {
-                    minifiedClassProperty: ['bindingName', 'classProperty', transformFn],
-                  }
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      inputs: {
+        minifiedClassProperty: ['bindingName', 'classProperty', transformFn],
+      },
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       inputs: {
-        'bindingName': 'minifiedClassProperty',
+        'bindingName': ['minifiedClassProperty', InputFlags.HasDecoratorInputTransform],
       },
       inputTransforms: {
         'minifiedClassProperty': transformFn,
@@ -88,10 +111,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile exportAs', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  exportAs: ['a', 'b'],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      exportAs: ['a', 'b'],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       exportAs: ['a', 'b'],
@@ -100,12 +124,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile providers', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  providers: [
-                    {provide: 'token', useValue: 123},
-                  ],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      providers: [{provide: 'token', useValue: 123}],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       features: [jasmine.any(Function)],
@@ -115,12 +138,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile view providers', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  viewProviders: [
-                    {provide: 'token', useValue: 123},
-                  ],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      viewProviders: [{provide: 'token', useValue: 123}],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       features: [jasmine.any(Function)],
@@ -130,24 +152,25 @@ describe('component declaration jit compilation', () => {
 
   it('should compile content queries', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  queries: [
-                    {
-                      propertyName: 'byRef',
-                      predicate: ['ref'],
-                    },
-                    {
-                      propertyName: 'byToken',
-                      predicate: String,
-                      descendants: true,
-                      static: true,
-                      first: true,
-                      read: ElementRef,
-                      emitDistinctChangesOnly: false,
-                    }
-                  ],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      queries: [
+        {
+          propertyName: 'byRef',
+          predicate: ['ref'],
+        },
+        {
+          propertyName: 'byToken',
+          predicate: String,
+          descendants: true,
+          static: true,
+          first: true,
+          read: ElementRef,
+          emitDistinctChangesOnly: false,
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       contentQueries: functionContaining([
@@ -167,24 +190,25 @@ describe('component declaration jit compilation', () => {
 
   it('should compile view queries', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  viewQueries: [
-                    {
-                      propertyName: 'byRef',
-                      predicate: ['ref'],
-                    },
-                    {
-                      propertyName: 'byToken',
-                      predicate: String,
-                      descendants: true,
-                      static: true,
-                      first: true,
-                      read: ElementRef,
-                      emitDistinctChangesOnly: false,
-                    }
-                  ],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      viewQueries: [
+        {
+          propertyName: 'byRef',
+          predicate: ['ref'],
+        },
+        {
+          propertyName: 'byToken',
+          predicate: String,
+          descendants: true,
+          static: true,
+          first: true,
+          read: ElementRef,
+          emitDistinctChangesOnly: false,
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       viewQuery: functionContaining([
@@ -204,28 +228,35 @@ describe('component declaration jit compilation', () => {
 
   it('should compile host bindings', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  host: {
-                    attributes: {
-                      'attr': 'value',
-                    },
-                    listeners: {
-                      'event': 'handleEvent($event)',
-                    },
-                    properties: {
-                      'foo': 'foo.prop',
-                      'attr.bar': 'bar.prop',
-                    },
-                    classAttribute: 'foo bar',
-                    styleAttribute: 'width: 100px;',
-                  },
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      host: {
+        attributes: {
+          'attr': 'value',
+        },
+        listeners: {
+          'event': 'handleEvent($event)',
+        },
+        properties: {
+          'foo': 'foo.prop',
+          'attr.bar': 'bar.prop',
+        },
+        classAttribute: 'foo bar',
+        styleAttribute: 'width: 100px;',
+      },
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       hostAttrs: [
-        'attr', 'value', AttributeMarker.Classes, 'foo', 'bar', AttributeMarker.Styles, 'width',
-        '100px'
+        'attr',
+        'value',
+        AttributeMarker.Classes,
+        'foo',
+        'bar',
+        AttributeMarker.Styles,
+        'width',
+        '100px',
       ],
       hostBindings: functionContaining([
         'return ctx.handleEvent($event)',
@@ -238,10 +269,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile components with inheritance', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  usesInheritance: true,
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      usesInheritance: true,
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       features: [ɵɵInheritDefinitionFeature],
@@ -250,10 +282,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile components with onChanges lifecycle hook', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  usesOnChanges: true,
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      usesOnChanges: true,
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       features: [ɵɵNgOnChangesFeature],
@@ -262,10 +295,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile components with OnPush change detection strategy', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  changeDetection: ChangeDetectionStrategy.OnPush,
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       onPush: true,
@@ -274,10 +308,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile components with styles', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  styles: ['div {}'],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      styles: ['div {}'],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       styles: ['div[_ngcontent-%COMP%] {}'],
@@ -287,11 +322,12 @@ describe('component declaration jit compilation', () => {
 
   it('should compile components with view encapsulation', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  styles: ['div {}'],
-                  encapsulation: ViewEncapsulation.ShadowDom,
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      styles: ['div {}'],
+      encapsulation: ViewEncapsulation.ShadowDom,
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       styles: ['div {}'],
@@ -301,10 +337,11 @@ describe('component declaration jit compilation', () => {
 
   it('should compile components with animations', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div></div>',
-                  animations: [{type: 'trigger'}],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div></div>',
+      animations: [{type: 'trigger'}],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       data: {
@@ -316,14 +353,16 @@ describe('component declaration jit compilation', () => {
   it('should honor preserveWhitespaces', () => {
     const template = '<div>    Foo    </div>';
     const whenTrue = ɵɵngDeclareComponent({
-                       type: TestClass,
-                       template,
-                       preserveWhitespaces: true,
-                     }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template,
+      preserveWhitespaces: true,
+    }) as ComponentDef<TestClass>;
     const whenOmitted = ɵɵngDeclareComponent({
-                          type: TestClass,
-                          template,
-                        }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template,
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(whenTrue, {
       template: functionContaining([
@@ -332,36 +371,35 @@ describe('component declaration jit compilation', () => {
       ]),
     });
     expectComponentDef(whenOmitted, {
-      template: functionContaining([
-        /elementStart[^(]*\(0,'div'\)/,
-        /text[^(]*\(1,' Foo '\)/,
-      ]),
+      template: functionContaining([/elementStart[^(]*\(0,'div'\)/, /text[^(]*\(1,' Foo '\)/]),
     });
   });
 
   it('should honor custom interpolation config', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '{% foo %}',
-                  interpolation: ['{%', '%}'],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '{% foo %}',
+      interpolation: ['{%', '%}'],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
-      template: functionContaining([
-        /textInterpolate[^(]*\(ctx.foo\)/,
-      ]),
+      template: functionContaining([/textInterpolate[^(]*\(ctx.foo\)/]),
     });
   });
 
   it('should compile used components', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<cmp></cmp>',
-                  components: [{
-                    type: TestCmp,
-                    selector: 'cmp',
-                  }],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<cmp></cmp>',
+      components: [
+        {
+          type: TestCmp,
+          selector: 'cmp',
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       directives: [TestCmp],
@@ -370,13 +408,16 @@ describe('component declaration jit compilation', () => {
 
   it('should compile used directives', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div dir></div>',
-                  directives: [{
-                    type: TestDir,
-                    selector: '[dir]',
-                  }],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div dir></div>',
+      directives: [
+        {
+          type: TestDir,
+          selector: '[dir]',
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       directives: [TestDir],
@@ -385,17 +426,22 @@ describe('component declaration jit compilation', () => {
 
   it('should compile used directives together with used components', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<cmp dir></cmp>',
-                  components: [{
-                    type: TestCmp,
-                    selector: 'cmp',
-                  }],
-                  directives: [{
-                    type: TestDir,
-                    selector: '[dir]',
-                  }],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<cmp dir></cmp>',
+      components: [
+        {
+          type: TestCmp,
+          selector: 'cmp',
+        },
+      ],
+      directives: [
+        {
+          type: TestDir,
+          selector: '[dir]',
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       directives: [TestCmp, TestDir],
@@ -404,19 +450,24 @@ describe('component declaration jit compilation', () => {
 
   it('should compile forward declared directives', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div forward></div>',
-                  directives: [{
-                    type: forwardRef(function() {
-                      return ForwardDir;
-                    }),
-                    selector: '[forward]',
-                  }],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div forward></div>',
+      directives: [
+        {
+          type: forwardRef(function () {
+            return ForwardDir;
+          }),
+          selector: '[forward]',
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
-    @Directive({selector: '[forward]'})
-    class ForwardDir {
-    }
+    @Directive({
+      selector: '[forward]',
+      standalone: false,
+    })
+    class ForwardDir {}
 
     expectComponentDef(def, {
       directives: [ForwardDir],
@@ -425,25 +476,28 @@ describe('component declaration jit compilation', () => {
 
   it('should compile mixed forward and direct declared directives', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '<div dir forward></div>',
-                  directives: [
-                    {
-                      type: TestDir,
-                      selector: '[dir]',
-                    },
-                    {
-                      type: forwardRef(function() {
-                        return ForwardDir;
-                      }),
-                      selector: '[forward]',
-                    }
-                  ],
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '<div dir forward></div>',
+      directives: [
+        {
+          type: TestDir,
+          selector: '[dir]',
+        },
+        {
+          type: forwardRef(function () {
+            return ForwardDir;
+          }),
+          selector: '[forward]',
+        },
+      ],
+    }) as ComponentDef<TestClass>;
 
-    @Directive({selector: '[forward]'})
-    class ForwardDir {
-    }
+    @Directive({
+      selector: '[forward]',
+      standalone: false,
+    })
+    class ForwardDir {}
 
     expectComponentDef(def, {
       directives: [TestDir, ForwardDir],
@@ -452,12 +506,13 @@ describe('component declaration jit compilation', () => {
 
   it('should compile used pipes', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '{{ expr | test }}',
-                  pipes: {
-                    'test': TestPipe,
-                  },
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '{{ expr | test }}',
+      pipes: {
+        'test': TestPipe,
+      },
+    }) as ComponentDef<TestClass>;
 
     expectComponentDef(def, {
       pipes: [TestPipe],
@@ -466,18 +521,21 @@ describe('component declaration jit compilation', () => {
 
   it('should compile forward declared pipes', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '{{ expr | forward }}',
-                  pipes: {
-                    'forward': forwardRef(function() {
-                      return ForwardPipe;
-                    }),
-                  },
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '{{ expr | forward }}',
+      pipes: {
+        'forward': forwardRef(function () {
+          return ForwardPipe;
+        }),
+      },
+    }) as ComponentDef<TestClass>;
 
-    @Pipe({name: 'forward'})
-    class ForwardPipe {
-    }
+    @Pipe({
+      name: 'forward',
+      standalone: false,
+    })
+    class ForwardPipe {}
 
     expectComponentDef(def, {
       pipes: [ForwardPipe],
@@ -486,19 +544,22 @@ describe('component declaration jit compilation', () => {
 
   it('should compile mixed forward and direct declared pipes', () => {
     const def = ɵɵngDeclareComponent({
-                  type: TestClass,
-                  template: '{{ expr | forward | test }}',
-                  pipes: {
-                    'test': TestPipe,
-                    'forward': forwardRef(function() {
-                      return ForwardPipe;
-                    }),
-                  },
-                }) as ComponentDef<TestClass>;
+      version: '18.0.0',
+      type: TestClass,
+      template: '{{ expr | forward | test }}',
+      pipes: {
+        'test': TestPipe,
+        'forward': forwardRef(function () {
+          return ForwardPipe;
+        }),
+      },
+    }) as ComponentDef<TestClass>;
 
-    @Pipe({name: 'forward'})
-    class ForwardPipe {
-    }
+    @Pipe({
+      name: 'forward',
+      standalone: false,
+    })
+    class ForwardPipe {}
 
     expectComponentDef(def, {
       pipes: [TestPipe, ForwardPipe],
@@ -506,15 +567,32 @@ describe('component declaration jit compilation', () => {
   });
 });
 
-type ComponentDefExpectations = jasmine.Expected<Pick<
+type ComponentDefExpectations = jasmine.Expected<
+  Pick<
     ComponentDef<unknown>,
-    'selectors'|'template'|'inputs'|'declaredInputs'|'outputs'|'features'|'hostAttrs'|
-    'hostBindings'|'hostVars'|'contentQueries'|'viewQuery'|'exportAs'|'providersResolver'|
-    'encapsulation'|'onPush'|'styles'|'data'|'inputTransforms'>>&{
-  directives: Type<unknown>[]|null;
-  pipes: Type<unknown>[]|null;
+    | 'selectors'
+    | 'template'
+    | 'inputs'
+    | 'declaredInputs'
+    | 'outputs'
+    | 'features'
+    | 'hostAttrs'
+    | 'hostBindings'
+    | 'hostVars'
+    | 'contentQueries'
+    | 'viewQuery'
+    | 'exportAs'
+    | 'providersResolver'
+    | 'encapsulation'
+    | 'onPush'
+    | 'styles'
+    | 'data'
+    | 'inputTransforms'
+  >
+> & {
+  directives: Type<unknown>[] | null;
+  pipes: Type<unknown>[] | null;
 };
-
 
 /**
  * Asserts that the provided component definition is according to the provided expectation.
@@ -522,7 +600,9 @@ type ComponentDefExpectations = jasmine.Expected<Pick<
  * default value.
  */
 function expectComponentDef(
-    actual: ComponentDef<unknown>, expected: Partial<ComponentDefExpectations>): void {
+  actual: ComponentDef<unknown>,
+  expected: Partial<ComponentDefExpectations>,
+): void {
   const expectation: ComponentDefExpectations = {
     selectors: [],
     template: jasmine.any(Function),
@@ -555,8 +635,8 @@ function expectComponentDef(
   expect(actual.inputs).withContext('inputs').toEqual(expectation.inputs);
   expect(actual.declaredInputs).withContext('declaredInputs').toEqual(expectation.declaredInputs);
   expect(actual.inputTransforms)
-      .withContext('inputTransforms')
-      .toEqual(expectation.inputTransforms);
+    .withContext('inputTransforms')
+    .toEqual(expectation.inputTransforms);
   expect(actual.outputs).withContext('outputs').toEqual(expectation.outputs);
   expect(actual.features).withContext('features').toEqual(expectation.features);
   expect(actual.hostAttrs).withContext('hostAttrs').toEqual(expectation.hostAttrs);
@@ -566,36 +646,43 @@ function expectComponentDef(
   expect(actual.viewQuery).withContext('viewQuery').toEqual(expectation.viewQuery);
   expect(actual.exportAs).withContext('exportAs').toEqual(expectation.exportAs);
   expect(actual.providersResolver)
-      .withContext('providersResolver')
-      .toEqual(expectation.providersResolver);
+    .withContext('providersResolver')
+    .toEqual(expectation.providersResolver);
   expect(actual.encapsulation).withContext('encapsulation').toEqual(expectation.encapsulation);
   expect(actual.onPush).withContext('onPush').toEqual(expectation.onPush);
   expect(actual.styles).withContext('styles').toEqual(expectation.styles);
   expect(actual.data).withContext('data').toEqual(expectation.data);
 
-  const convertNullToEmptyArray = <T extends Type<any>[]|null>(arr: T): T =>
-      arr ?? ([] as unknown as T);
+  const convertNullToEmptyArray = <T extends Type<any>[] | null>(arr: T): T =>
+    arr ?? ([] as unknown as T);
 
   const directiveDefs =
-      typeof actual.directiveDefs === 'function' ? actual.directiveDefs() : actual.directiveDefs;
-  const directiveTypes = directiveDefs !== null ? directiveDefs.map(def => def.type) : null;
+    typeof actual.directiveDefs === 'function' ? actual.directiveDefs() : actual.directiveDefs;
+  const directiveTypes = directiveDefs !== null ? directiveDefs.map((def) => def.type) : null;
   expect(convertNullToEmptyArray(directiveTypes)).toEqual(expectation.directives);
 
   const pipeDefs = typeof actual.pipeDefs === 'function' ? actual.pipeDefs() : actual.pipeDefs;
-  const pipeTypes = pipeDefs !== null ? pipeDefs.map(def => def.type) : null;
+  const pipeTypes = pipeDefs !== null ? pipeDefs.map((def) => def.type) : null;
   expect(convertNullToEmptyArray(pipeTypes)).toEqual(expectation.pipes);
 }
 
 class TestClass {}
 
-@Directive({selector: '[dir]'})
-class TestDir {
-}
+@Directive({
+  selector: '[dir]',
+  standalone: false,
+})
+class TestDir {}
 
-@Component({selector: 'cmp', template: ''})
-class TestCmp {
-}
+@Component({
+  selector: 'cmp',
+  template: '',
+  standalone: false,
+})
+class TestCmp {}
 
-@Pipe({name: 'test'})
-class TestPipe {
-}
+@Pipe({
+  name: 'test',
+  standalone: false,
+})
+class TestPipe {}

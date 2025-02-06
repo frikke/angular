@@ -13,6 +13,7 @@ exports_files([
     "scripts/ci/payload-size.sh",
     "scripts/ci/payload-size.js",
     "package.json",
+    "angular.json",
 ])
 
 filegroup(
@@ -63,11 +64,11 @@ config_setting(
 
 nodejs_binary(
     name = "yarn_vendored",
-    data = [".yarn/releases/yarn-1.22.19.cjs"],
-    entry_point = ".yarn/releases/yarn-1.22.19.cjs",
+    data = [".yarn/releases/yarn-1.22.22.cjs"],
+    entry_point = ".yarn/releases/yarn-1.22.22.cjs",
     visibility = [
-        "//aio/tools/examples/shared:__pkg__",
         "//integration:__subpackages__",
+        "//modules/ssr-benchmarks:__subpackages__",
     ],
 )
 

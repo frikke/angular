@@ -1,35 +1,35 @@
 <header class="adev-api-items-section-header">
-  @if (group.isFeatured) {
-    <docs-icon>star</docs-icon>
-  }
-  <h3>{{ group.title }}</h3>
+  <h3 [id]="group().id">
+    <a
+      routerLink="/api"
+      [fragment]="group().id"
+      queryParamsHandling="preserve"
+      class="adev-api-anchor"
+      tabindex="-1"
+    >
+      {{group().title}}
+    </a>
+  </h3>
 </header>
 
 <ul class="adev-api-items-section-grid">
-  @for (apiItem of group.items; track apiItem.url) {
+  @for (apiItem of group().items; track apiItem.url) {
     <li [class.adev-api-items-section-item-deprecated]="apiItem.isDeprecated">
-      <a [routerLink]="'/' + apiItem.url" class="adev-api-items-section-item" [attr.aria-describedby]="apiItem.isDeprecated ? 'deprecated-description' : null">
-        <adev-api-item-label
+      <a
+        [routerLink]="'/' + apiItem.url"
+        class="adev-api-items-section-item"
+        [attr.aria-describedby]="apiItem.isDeprecated ? 'deprecated-description' : null"
+      >
+        <docs-api-item-label
           [type]="apiItem.itemType"
           mode="short"
-          class="adev-api-item-label"
+          class="docs-api-item-label"
           aria-hidden="true"
         />
-        <span class="adev-item-title">{{ apiItem.title }}</span>
+        <span class="adev-item-title" [attr.title]="apiItem.title">{{ apiItem.title }}</span>
       </a>
       @if (apiItem.isDeprecated) {
-        <span class="adev-deprecated">
-          &lt;!&gt;
-        </span>
-      }
-      @if (apiItem.isFeatured) {
-        <docs-icon
-          class="adev-api-items-section-item-featured"
-          [class.adev-api-item-in-featured-section]="group.isFeatured"
-          [class.adev-api-items-section-item-featured-active]="apiItem.isFeatured"
-        >
-          star
-        </docs-icon>
+        <span class="docs-deprecated"> &lt;!&gt; </span>
       }
     </li>
   }

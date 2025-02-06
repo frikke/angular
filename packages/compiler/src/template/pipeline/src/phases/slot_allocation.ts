@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import * as ir from '../../ir';
@@ -63,6 +63,9 @@ export function allocateSlots(job: ComponentCompilationJob): void {
         // operation itself, so it can be emitted later.
         const childView = job.views.get(op.xref)!;
         op.decls = childView.decls;
+
+        // TODO: currently we handle the decls for the RepeaterCreate empty template in the reify
+        // phase. We should handle that here instead.
       }
     }
   }

@@ -1,17 +1,16 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import {Component, Output, EventEmitter} from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'app-item-output',
   templateUrl: './item-output.component.html',
 })
 // #docregion item-output-class
 export class ItemOutputComponent {
-// #docregion item-output
+  // #docregion item-output
 
   @Output() newItemEvent = new EventEmitter<string>();
 
-// #enddocregion item-output
+  // #enddocregion item-output
   addNewItem(value: string) {
     this.newItemEvent.emit(value);
   }

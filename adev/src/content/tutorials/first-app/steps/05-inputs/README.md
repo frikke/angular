@@ -26,14 +26,14 @@ In the code editor:
 1. Navigate to `src/app/housing-location/housing-location.component.ts`
 1. Update the file imports to include `Input` and `HousingLocation`:
 
-    <docs-code header="Import HousingLocationComponent and Input in src/app/housing-location/housing-location.component.ts" path="first-app/steps/06-property-binding/src/app/housing-location/housing-location.component.ts" visibleLines="[1,3]"/>
+    <docs-code header="Import HousingLocationComponent and Input in src/app/housing-location/housing-location.component.ts" path="adev/src/content/tutorials/first-app/steps/06-property-binding/src/app/housing-location/housing-location.component.ts" visibleLines="[1,3]"/>
 
 </docs-step>
 
 <docs-step title="Add the Input property">
 1.  In the same file, add a property called `housingLocation` of type `HousingLocation` to the `HousingLocationComponent` class. Add an `!` after the property name and prefix it with the `@Input()` decorator:
 
-    <docs-code header="Import HousingLocationComponent and Input in src/app/housing-location/housing-location.component.ts" path="first-app/steps/06-property-binding/src/app/housing-location/housing-location.component.ts" visibleLines="[16,18]"/>
+    <docs-code header="Import HousingLocationComponent and Input in src/app/housing-location/housing-location.component.ts" path="adev/src/content/tutorials/first-app/steps/06-property-binding/src/app/housing-location/housing-location.component.ts" visibleLines="[13,15]"/>
 
     You have to add the `!` because the input is expecting the value to be passed. In this case, there is no default value. In our example application case we know that the value will be passed in - this is by design. The exclamation point is called the non-null assertion operator and it tells the TypeScript compiler that the value of this property won't be null or undefined.
 
@@ -47,5 +47,6 @@ In the code editor:
 Summary: In this lesson, you created a new property decorated with the `@Input()` decorator. You also used the non-null assertion operator to notify the compiler that the value of the new property won't be `null` or `undefined`.
 
 <docs-pill-row>
-  <docs-pill href="guide/components/inputs-outputs" title="Sharing data between child and parent directives and components"/>
+  <docs-pill href="guide/components/inputs" title="Accepting data with input properties"/>
+  <docs-pill href="guide/components/outputs" title="Custom events with outputs"/>
 </docs-pill-row>

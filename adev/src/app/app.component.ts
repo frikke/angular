@@ -7,53 +7,63 @@
  */
 
 import {DOCUMENT, isPlatformBrowser} from '@angular/common';
-import {Component, inject, NgZone, OnInit, PLATFORM_ID, signal} from '@angular/core';
-import {NavigationEnd, NavigationSkipped, Router, RouterLink, RouterOutlet} from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+  WritableSignal,
+} from '@angular/core';
+import {NavigationEnd, NavigationSkipped, Router, RouterOutlet} from '@angular/router';
 import {filter, map, skip} from 'rxjs/operators';
 import {
   CookiePopup,
   getActivatedRouteSnapshotFromRouter,
   IS_SEARCH_DIALOG_OPEN,
   SearchDialog,
-  WINDOW,
-} from '@angular/docs-shared';
+  TopLevelBannerComponent,
+} from '@angular/docs';
 import {Footer} from './core/layout/footer/footer.component';
 import {Navigation} from './core/layout/navigation/navigation.component';
 import {SecondaryNavigation} from './core/layout/secondary-navigation/secondary-navigation.component';
 import {ProgressBarComponent} from './core/layout/progress-bar/progress-bar.component';
 import {ESCAPE, SEARCH_TRIGGER_KEY} from './core/constants/keys';
+import {HeaderService} from './core/services/header.service';
 
 @Component({
-  standalone: true,
   selector: 'adev-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CookiePopup,
     Navigation,
     Footer,
     SecondaryNavigation,
     RouterOutlet,
-    RouterLink,
     SearchDialog,
     ProgressBarComponent,
+    TopLevelBannerComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  host: {
+    '(window:keydown)': 'setSearchDialogVisibilityOnKeyPress($event)',
+  },
 })
 export class AppComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
-  private readonly ngZone = inject(NgZone);
   private readonly router = inject(Router);
-  private readonly window = inject(WINDOW);
+  private readonly headerService = inject(HeaderService);
 
   currentUrl = signal('');
   displayFooter = signal(false);
   displaySecondaryNav = signal(false);
-  displaySearchDialog = inject(IS_SEARCH_DIALOG_OPEN);
+  displaySearchDialog: WritableSignal<boolean> = inject(IS_SEARCH_DIALOG_OPEN);
 
   isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   ngOnInit(): void {
-    this.setSearchDialogVisibilityOnKeyPress();
     this.closeSearchDialogOnNavigationSkipped();
     this.router.events
       .pipe(
@@ -64,9 +74,9 @@ export class AppComponent implements OnInit {
         this.currentUrl.set(url);
         this.setComponentsVisibility();
         this.displaySearchDialog.set(false);
-      });
 
-    this.focusFirstHeadingOnRouteChange();
+        this.updateCanonicalLink(url);
+      });
   }
 
   focusFirstHeading(): void {
@@ -74,47 +84,31 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    const h1 = this.document.querySelector<HTMLHeadingElement>('h1');
+    const h1 = this.document.querySelector<HTMLHeadingElement>('h1:not(docs-top-level-banner h1)');
     h1?.focus();
   }
 
+  private updateCanonicalLink(absoluteUrl: string) {
+    this.headerService.setCanonical(absoluteUrl);
+  }
+
   private setComponentsVisibility(): void {
-    const activatedRoute = getActivatedRouteSnapshotFromRouter(this.router);
+    const activatedRoute = getActivatedRouteSnapshotFromRouter(this.router as any);
 
     this.displaySecondaryNav.set(activatedRoute.data['displaySecondaryNav']);
     this.displayFooter.set(!activatedRoute.data['hideFooter']);
   }
 
-  private focusFirstHeadingOnRouteChange(): void {
-    this.router.events
-      .pipe(
-        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-        // Skip first emission, cause on the initial load we would like to `Skip to main content` popup when it's focused
-        skip(1),
-      )
-      .subscribe(() => {
-        this.focusFirstHeading();
-      });
-  }
+  private setSearchDialogVisibilityOnKeyPress(event: KeyboardEvent): void {
+    if (event.key === SEARCH_TRIGGER_KEY && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      this.displaySearchDialog.update((display) => !display);
+    }
 
-  private setSearchDialogVisibilityOnKeyPress(): void {
-    this.ngZone.runOutsideAngular(() => {
-      this.window.addEventListener('keydown', (event: KeyboardEvent) => {
-        if (event.key === SEARCH_TRIGGER_KEY && (event.metaKey || event.ctrlKey)) {
-          this.ngZone.run(() => {
-            event.preventDefault();
-            this.displaySearchDialog.update((display) => !display);
-          });
-        }
-
-        if (event.key === ESCAPE && this.displaySearchDialog()) {
-          this.ngZone.run(() => {
-            event.preventDefault();
-            this.displaySearchDialog.set(false);
-          });
-        }
-      });
-    });
+    if (event.key === ESCAPE && this.displaySearchDialog()) {
+      event.preventDefault();
+      this.displaySearchDialog.set(false);
+    }
   }
 
   private closeSearchDialogOnNavigationSkipped(): void {

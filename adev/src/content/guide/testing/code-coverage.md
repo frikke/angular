@@ -33,7 +33,7 @@ To enable this, open the [Karma](https://karma-runner.github.io) test platform c
 
 <docs-code language="javascript">
 coverageReporter: {
-  dir: require('path').join(__dirname, './coverage/&lt;project-name&gt;'),
+  dir: require('path').join(__dirname, './coverage/<project-name>'),
   subdir: '.',
   reporters: [
     { type: 'html' },
@@ -50,7 +50,7 @@ coverageReporter: {
 }
 </docs-code>
 
-HELPFUL: Read more about creating and fine tunning Karma configuration in the [testing guide](guide/testing#configuration).
+HELPFUL: Read more about creating and fine tuning Karma configuration in the [testing guide](guide/testing#configuration).
 
 The `check` property causes the tool to enforce a minimum of 80% code coverage when the unit tests are run in the project.
 

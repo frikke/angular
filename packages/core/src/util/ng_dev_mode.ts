@@ -3,7 +3,7 @@
  * Copyright Google LLC All Rights Reserved.
  *
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * found in the LICENSE file at https://angular.dev/license
  */
 
 import {global} from './global';
@@ -23,7 +23,7 @@ declare global {
    * - The URL contains a `ngDevMode=false` text.
    * Finally, ngDevMode may not have been defined at all.
    */
-  const ngDevMode: null|NgDevModePerfCounters;
+  const ngDevMode: null | NgDevModePerfCounters;
 
   interface NgDevModePerfCounters {
     namedConstructors: boolean;
@@ -54,6 +54,7 @@ declare global {
     dehydratedViewsRemoved: number;
     dehydratedViewsCleanupRuns: number;
     componentsSkippedHydration: number;
+    deferBlocksWithIncrementalHydration: number;
   }
 }
 
@@ -88,11 +89,19 @@ export function ngDevModeResetPerfCounters(): NgDevModePerfCounters {
     dehydratedViewsRemoved: 0,
     dehydratedViewsCleanupRuns: 0,
     componentsSkippedHydration: 0,
+    deferBlocksWithIncrementalHydration: 0,
   };
 
   // Make sure to refer to ngDevMode as ['ngDevMode'] for closure.
   const allowNgDevModeTrue = locationString.indexOf('ngDevMode=false') === -1;
-  global['ngDevMode'] = allowNgDevModeTrue && newCounters;
+  if (!allowNgDevModeTrue) {
+    global['ngDevMode'] = false;
+  } else {
+    if (typeof global['ngDevMode'] !== 'object') {
+      global['ngDevMode'] = {};
+    }
+    Object.assign(global['ngDevMode'], newCounters);
+  }
   return newCounters;
 }
 
@@ -123,7 +132,7 @@ export function initNgDevMode(): boolean {
   // If the `ngDevMode` is not an object, then it means we have not created the perf counters
   // yet.
   if (typeof ngDevMode === 'undefined' || ngDevMode) {
-    if (typeof ngDevMode !== 'object') {
+    if (typeof ngDevMode !== 'object' || Object.keys(ngDevMode).length === 0) {
       ngDevModeResetPerfCounters();
     }
     return typeof ngDevMode !== 'undefined' && !!ngDevMode;
